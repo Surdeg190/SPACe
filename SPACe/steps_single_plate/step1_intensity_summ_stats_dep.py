@@ -25,6 +25,7 @@ from cellpaint.utils.shared_memory import MyBaseManager, TestProxy, create_share
 # from cellpose import models
 
 import matplotlib.pyplot as plt
+from dask import delayed, compute
 
 
 class IntensityPreProfiler(BaseConstructor):
@@ -135,12 +136,18 @@ def run_multi_process(args):
     # create a new manager instance
     with MyManager as manager:
         inst = getattr(manager, IntensityPreProfiler.__name__)(args)
-        # get metadata and features together (pool.imap is a must!!!)
-        with mp.Pool(processes=inst.num_workers) as pool:
-            for ii, (meta_prof, feature_prof) in tqdm(
-                    enumerate(pool.imap(inst.get_metadata_and_features, inst.args.img_filepaths)),
-                    total=inst.n_images):
-                inst.metadata_profile[ii], inst.feature_profile[ii] = meta_prof, feature_prof
+        
+        tasks = [delayed(inst.get_metadata_and_features)(filepath) for filepath in inst.args.img_filepaths]
+        results = compute(*tasks)
+
+        for ii, (meta_profile, feat_profile) in tqdm(enumerate(results), total=inst.n_images):
+            inst.metadata_profile[ii], inst.feature_profile[ii] = meta_profile, feat_profile
+        # # get metadata and features together (pool.imap is a must!!!)
+        # with mp.Pool(processes=inst.num_workers) as pool:
+        #     for ii, (meta_prof, feature_prof) in tqdm(
+        #             enumerate(pool.imap(inst.get_metadata_and_features, inst.args.img_filepaths)),
+        #             total=inst.n_images):
+        #         inst.metadata_profile[ii], inst.feature_profile[ii] = meta_prof, feature_prof
 
         # save both to a dataframe
         inst.profiles = np.concatenate((inst.metadata_profile, inst.feature_profile), axis=1)

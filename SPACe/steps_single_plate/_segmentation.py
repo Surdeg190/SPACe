@@ -28,6 +28,8 @@ import pyclesperanto_prototype as cle
 from SPACe.steps_single_plate.step0_args import Args, \
     load_img, sort_key_for_imgs, sort_key_for_masks, set_mask_save_name
 
+from dask import delayed, compute
+import torch
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 device = cle.select_device("RTX")
@@ -65,7 +67,8 @@ class SegmentationPartI:
         """self.N is the total number of images (when all their channels are grouped together) in the
         args.main_path\args.experiment\args.plate_protocol folder."""
         self.args = args
-        self.cellpose_model = models.Cellpose(gpu=True, model_type=self.args.cellpose_model_type, net_avg=False)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.cellpose_model = models.Cellpose(gpu=True, model_type=self.args.cellpose_model_type, net_avg=False, device=device)
 
         if self.args.mode == "preview":
             self.save_path = self.args.main_path / self.args.experiment / f"Step0_MasksP1-Preview"
@@ -81,7 +84,9 @@ class SegmentationPartI:
 
         # # stime = time.time()
         # load, rescale/contrast-enhance, and background subtraction the images using the tophat filter!!!
+        
         img = load_img(img_channels_filepaths, self.args)
+        
 
         if self.args.step2_segmentation_algorithm == "w1=cellpose_w2=cellpose":  # recommended
             # get nucleus and cyto masks using cellpose
@@ -167,6 +172,12 @@ class SegmentationPartI:
 
         w1_mask = np.uint16(w1_mask)
         w2_mask = np.uint16(w2_mask)
+
+        # print(f"w1_mask sum p1: {np.sum(w1_mask)}")
+        # print(f"w2_mask sum p1: {np.sum(w2_mask)}")
+
+        # Image.fromarray(w1_mask).save(self.save_path / set_mask_save_name(well_id, fov, 0))
+        # Image.fromarray(w2_mask).save(self.save_path / set_mask_save_name(well_id, fov, 1))
         sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
         sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
         # print(f"saving {time.time() - et}")
@@ -287,11 +298,23 @@ class SegmentationPartII:
             axes[1, 3].imshow(label2rgb(w5_mask), cmap="gray")
             plt.show()
 
+        
+        
+        # print(f"w1_mask sum: {np.sum(w1_mask)}")
+        # print(f"w2_mask sum: {np.sum(w2_mask)}")
+        # print(f"w3_mask sum: {np.sum(w3_mask)}")
+        # print(f"w5_mask sum: {np.sum(w5_mask)}")
+
         # 4) save
-        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
-        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
-        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 2), w3_mask, check_contrast=False)
-        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 4), w5_mask, check_contrast=False)
+        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
+        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
+        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 2), w3_mask, check_contrast=False)
+        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 4), w5_mask, check_contrast=False)
+        Image.fromarray(w1_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 0))
+        Image.fromarray(w2_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 1))
+        Image.fromarray(w3_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 2))
+        Image.fromarray(w5_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 4))
+
 
     def run_multi(self, index):
         # 0) Get keys
@@ -307,6 +330,9 @@ class SegmentationPartII:
         w1_mask = cv2.imread(str(w1_mask_path), cv2.IMREAD_UNCHANGED)
         w2_mask = cv2.imread(str(w2_mask_path), cv2.IMREAD_UNCHANGED)
 
+        # print(f"w1_mask sum PRE: {np.sum(w1_mask)}")
+        # print(f"w2_mask sum PRE: {np.sum(w2_mask)}")
+
         # 2) Generate masks
         w1_mask, w2_mask = self.step1_preprocessing_and_w1w2_label_matching(img, w1_mask, w2_mask)
         w3_mask, w5_mask = self.step2_get_nucleoli_and_mito_masks_v2(img, w1_mask, w2_mask)
@@ -317,14 +343,25 @@ class SegmentationPartII:
         save_name_3 = str(self.save_path2 / set_mask_save_name(well_id, fov, 2))
         save_name_4 = str(self.save_path2 / set_mask_save_name(well_id, fov, 4))
 
-        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
+
+        # print(f"w1_mask sum: {np.sum(w1_mask)}")
+        # print(f"w2_mask sum: {np.sum(w2_mask)}")
+        # print(f"w3_mask sum: {np.sum(w3_mask)}")
+        # print(f"w5_mask sum: {np.sum(w5_mask)}")
+
+
+        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
         cv2.imwrite(save_name_1, label2rgb(w1_mask, bg_label=0)) #This Works. Try making another variable to hold the name
-        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
+        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
         cv2.imwrite(save_name_2, label2rgb(w2_mask, bg_label=0))
-        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 2), w3_mask, check_contrast=False)
+        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 2), w3_mask, check_contrast=False)
         cv2.imwrite(save_name_3, label2rgb(w3_mask, bg_label=0))
-        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 4), w5_mask, check_contrast=False)
+        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 4), w5_mask, check_contrast=False)
         cv2.imwrite(save_name_4, label2rgb(w5_mask, bg_label=0))
+        Image.fromarray(w1_mask).save(self.save_path / set_mask_save_name(well_id, fov, 0))
+        Image.fromarray(w2_mask).save(self.save_path / set_mask_save_name(well_id, fov, 1))
+        Image.fromarray(w3_mask).save(self.save_path / set_mask_save_name(well_id, fov, 2))
+        Image.fromarray(w5_mask).save(self.save_path / set_mask_save_name(well_id, fov, 4))
 
         # print(self.save_path2 / set_mask_save_name(well_id, fov, 0))
         #
@@ -355,8 +392,10 @@ class SegmentationPartII:
         w2_mask = w2_mask.astype(np.uint32)
 
         # slightly smoothen the masks
+        # print(f"before smoothening: w1_mask sum: {np.sum(w1_mask)}")
         w1_mask = closing(w1_mask, disk(4))
         w2_mask = closing(w2_mask, disk(4))
+        # print(f"after smoothening: w1_mask sum: {np.sum(w1_mask)}")
 
         # fig, axes = plt.subplots(2, 2, sharex=True, sharey=True)
         # axes[0, 0].imshow(img[0], cmap="gray")
@@ -375,11 +414,15 @@ class SegmentationPartII:
 
         # remove cells touching the border in w1_mask, and the ones
         # touching the border in w2 mask which don't contain any nucleus
+
+        # print(f"border-ids: {np.unique(w1_mask[border_mask])}")
+        # print(f"w1_mask sum before border removal: {np.sum(w1_mask)}")
         w1_border_ids = np.unique(w1_mask[border_mask])
         w1_mask[np.isin(w1_mask, w1_border_ids)] = 0
         w2_border_ids = np.unique(w2_mask[border_mask & (w1_mask == 0)])
         w2_mask[np.isin(w2_mask, w2_border_ids)] = 0
         # print(w1_border_ids, w2_border_ids)
+        # print(f"w1_mask sum after border removal: {np.sum(w1_mask)}")
 
         if np.sum(w1_mask) == 0 or np.sum(w2_mask) == 0:
             print("no pixels detected ...")

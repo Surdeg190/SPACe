@@ -7,6 +7,7 @@ from string import ascii_lowercase, ascii_uppercase
 
 import cv2
 import math
+import dask_image.imread
 import xlrd
 import string
 import random
@@ -17,6 +18,10 @@ import numpy as np
 import pandas as pd
 from skimage.exposure import rescale_intensity
 import skimage.io as sio
+
+import dask.array as da
+from dask import delayed, compute
+import dask_image
 
 # TODO: Add proper documentation for all the different class
 # TODO: Add a README file that explains the steps,
@@ -195,13 +200,16 @@ def get_img_channel_groups(args):
     # f"{ASSAY}_A02_T0001F002L01A02Z01C01.tif"
     # to group channels we need key = (folder, well_id, fov)
     filename_keys, img_path_groups = [], []
+
     for key, grp in itertools.groupby(
             args.img_filepaths,
             key=lambda x: sort_key_for_imgs(x, "to_group_channels", args.plate_protocol)):
         filename_keys.append(key)
         img_path_groups.append(list(grp))
-    # filename_keys = np.array(filename_keys, dtype=object)
-    # img_path_groups = np.array(img_path_groups, dtype=object)
+    filename_keys = np.array(filename_keys, dtype=object)
+    img_path_groups = np.array(img_path_groups, dtype=object)
+
+
 
     N = len(img_path_groups)
     return filename_keys, img_path_groups, N
@@ -254,7 +262,33 @@ def load_img(img_path_group, args):
         returns:
         img: a numpy uint16 array of shape (5, height, width) containing the 5 image channels
     """
-    # read images from file
+
+    # @delayed
+    # def load_and_process_image(img_path, bg_sub, bg_kernel, intensity_bounds):
+    #     img = tifffile.imread(img_path)[np.newaxis]
+    #     # img = img_path.compute()[np.newaxis]
+    #     in_range = tuple(np.percentile(img, intensity_bounds))
+    #     if bg_sub:
+    #         img = cv2.morphologyEx(img, cv2.MORPH_TOPHAT, bg_kernel)
+    #     img = rescale_intensity(img, in_range=in_range)
+    #     return img
+
+    # # read images from file
+    # w1_img = load_and_process_image(img_path_group[args.nucleus_idx], args.bg_sub, args.bgsub_kernels["w1"],
+    #                                 args.rescale_intensity_bounds["w1"])
+    # w2_img = load_and_process_image(img_path_group[args.cyto_idx], args.bg_sub, args.bgsub_kernels["w2"],
+    #                                 args.rescale_intensity_bounds["w2"])
+    # w3_img = load_and_process_image(img_path_group[args.nucleoli_idx], args.bg_sub, args.bgsub_kernels["w3"],
+    #                                 args.rescale_intensity_bounds["w3"])
+    # w4_img = load_and_process_image(img_path_group[args.actin_idx], args.bg_sub, args.bgsub_kernels["w4"],
+    #                                 args.rescale_intensity_bounds["w4"])
+    # w5_img = load_and_process_image(img_path_group[args.mito_idx], args.bg_sub, args.bgsub_kernels["w5"],
+    #                                 args.rescale_intensity_bounds["w5"])
+    
+    # w1_img, w2_img, w3_img, w4_img, w5_img = compute(w1_img, w2_img, w3_img, w4_img, w5_img)
+
+    # img = np.concatenate([w1_img, w2_img, w3_img, w4_img, w5_img], axis=0)
+
     w1_img = tifffile.imread(img_path_group[args.nucleus_idx])[np.newaxis]
     w2_img = tifffile.imread(img_path_group[args.cyto_idx])[np.newaxis]
     w3_img = tifffile.imread(img_path_group[args.nucleoli_idx])[np.newaxis]
@@ -500,7 +534,22 @@ class Args(object):
         self.args.img_filename_keys, self.args.img_channels_filepaths, self.args.N = get_img_channel_groups(self.args)
         self.args.height, self.args.width = tifffile.imread(self.args.img_filepaths[0]).shape
 
+        # set img_channels_filepaths and img_filename_keys as dask arrays
+        self.args.img_channels_filepaths = da.from_array(self.args.img_channels_filepaths, chunks=(1, 100))
+        self.args.img_filename_keys = da.from_array(self.args.img_filename_keys, chunks=(100, 3))
+        self.args.img_filepaths = da.from_array(self.args.img_filepaths, chunks=(100,))
+
         self.args.platemap_filepath = list((self.args.main_path / self.args.experiment).rglob("platemap*.xlsx"))[0]
+
+        # self.args.delayed_imread = delayed(tifffile.imread, pure=True)
+
+        # self.args.dask_images = [self.args.delayed_imread(img_path) for img_path in self.args.img_filepaths]
+        
+
+
+
+        # img = dask_image.imread.imread(self.args.img_filepaths)
+        # self.args.dask_images = img
 
         # self.add_save_path_args()
         # # for Step 3) feature extraction

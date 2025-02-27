@@ -6,6 +6,7 @@ from pathlib import WindowsPath
 import numpy as np
 from SPACe.steps_single_plate.step0_args import Args
 from SPACe.steps_single_plate._segmentation import SegmentationPartI
+from dask import delayed, compute
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
@@ -24,11 +25,14 @@ def step2_main_run_loop(args):
     seg_class = SegmentationPartI(args)
     s_time = time.time()
     N = seg_class.args.N
-    # ranger = np.arange(N)
-    ranger = tqdm(np.arange(N), total=N)
+    ranger = np.arange(N)
+    # ranger = tqdm(np.arange(N), total=N)
 
-    for ii in ranger:
-        seg_class.run_single(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii])
+    tasks = [delayed(seg_class.run_single)(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii]) for ii in ranger]
+    compute(*tasks)
+
+    # for ii in ranger:
+    #     seg_class.run_single(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii])
     print(f"Finished Cellpaint Step 2 for {N} images  in {(time.time() - s_time) / 3600} hours\n")
 
 
