@@ -534,10 +534,10 @@ class Args(object):
         self.args.img_filename_keys, self.args.img_channels_filepaths, self.args.N = get_img_channel_groups(self.args)
         self.args.height, self.args.width = tifffile.imread(self.args.img_filepaths[0]).shape
 
-        # set img_channels_filepaths and img_filename_keys as dask arrays
-        self.args.img_channels_filepaths = da.from_array(self.args.img_channels_filepaths, chunks=(1, 100))
-        self.args.img_filename_keys = da.from_array(self.args.img_filename_keys, chunks=(100, 3))
-        self.args.img_filepaths = da.from_array(self.args.img_filepaths, chunks=(100,))
+        # # set img_channels_filepaths and img_filename_keys as dask arrays
+        # self.args.img_channels_filepaths = da.from_array(self.args.img_channels_filepaths, chunks=(1, 100))
+        # self.args.img_filename_keys = da.from_array(self.args.img_filename_keys, chunks=(100, 3))
+        # self.args.img_filepaths = da.from_array(self.args.img_filepaths, chunks=(100,))
 
         self.args.platemap_filepath = list((self.args.main_path / self.args.experiment).rglob("platemap*.xlsx"))[0]
 
