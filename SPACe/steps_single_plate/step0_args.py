@@ -381,6 +381,7 @@ class Args(object):
             min_fov_cell_count=1,
             distmap_batch_size=64,
             plate_protocol="cimini",
+            platemap_path="platemap/platemap.xlsx"
     ):
         """
             experiment:
@@ -470,6 +471,7 @@ class Args(object):
         self.args.min_fov_cell_count = min_fov_cell_count
         #######################################################################
         self.args.plate_protocol = plate_protocol
+        self.args.platemap_path = platemap_path
 
         # In case we want to redo analysis after Cell-paint step 3 and the image folder is missing or
         # it has not been transferred!!!
@@ -542,7 +544,7 @@ class Args(object):
         # self.args.img_filename_keys = da.from_array(self.args.img_filename_keys, chunks=(100, 3))
         # self.args.img_filepaths = da.from_array(self.args.img_filepaths, chunks=(100,))
 
-        self.args.platemap_filepath = list((self.args.main_path / self.args.experiment).rglob("platemap*.xlsx"))[0]
+        self.args.platemap_filepath = self.args.platemap_path
 
         # self.args.delayed_imread = delayed(tifffile.imread, pure=True)
 
