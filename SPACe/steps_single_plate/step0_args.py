@@ -380,6 +380,7 @@ class Args(object):
             # hyperparameters/constants used in Cellpaint Step 5
             min_fov_cell_count=1,
             distmap_batch_size=64,
+            plate_protocol="cimini",
     ):
         """
             experiment:
@@ -467,44 +468,46 @@ class Args(object):
         # Cellpaint Step 5) hyperparameters
         self.args.distmap_batch_size = distmap_batch_size
         self.args.min_fov_cell_count = min_fov_cell_count
+        #######################################################################
+        self.args.plate_protocol = plate_protocol
 
         # In case we want to redo analysis after Cell-paint step 3 and the image folder is missing or
         # it has not been transferred!!!
         if self.args.analysis_part == 1:
             self.args.imgs_fold = list(filter(
-                lambda x: "AssayPlate" in str(x),
+                lambda x: "Images" in str(x),
                 (self.args.main_path / self.args.experiment).iterdir()))[0].stem
             print("self.args.imgs_fold:", self.args.imgs_fold)
             self.args.imgs_dir = self.args.main_path / self.args.experiment / self.args.imgs_fold
 
             # Get generic width and height dimensions of the image, in the specific experiment.
             # We assume height and width are the same for every single images, in the same experiment!!!
-            if "perkinelmer" in self.args.imgs_fold.lower() or \
-                    "greiner" in self.args.imgs_fold.lower() or \
-                    "combchem" in self.args.imgs_fold.lower():
+            if "perkinelmer" in self.args.plate_protocol or \
+                    "greiner" in self.args.plate_protocol or \
+                    "combchem" in self.args.plate_protocol:
                 self.args.img_suffix = "tif"
-                self.args.plate_protocol = self.args.imgs_fold.split("_")[1].lower()
+                # self.args.plate_protocol = self.args.imgs_fold.split("_")[1].lower()
                 self.args.img_filepaths = list(self.args.imgs_dir.rglob(
                     f"{self.args.imgs_fold}_*.{self.args.img_suffix}"))
 
-            elif "cpg0012" in self.args.imgs_fold.lower():
+            elif "cpg0012" in self.args.plate_protocol:
                 self.args.img_suffix = "tif"
-                self.args.plate_protocol = self.args.imgs_fold
+                # self.args.plate_protocol = self.args.imgs_fold
                 self.args.img_filepaths = list(self.args.imgs_dir.rglob(f"*.{self.args.img_suffix}"))
 
-            elif "cpg0001" in self.args.imgs_fold.lower():
+            elif "cpg0001" in self.args.plate_protocol:
                 self.args.img_suffix = "tiff"
-                self.args.plate_protocol = self.args.imgs_fold
+                # self.args.plate_protocol = self.args.imgs_fold
                 self.args.img_filepaths = list(self.args.imgs_dir.rglob(f"*.{self.args.img_suffix}"))
                 
-            elif "cpgmoa" in self.args.imgs_fold.lower():
+            elif "cpgmoa" in self.args.plate_protocol:
                 self.args.img_suffix = "tif"
-                self.args.plate_protocol = self.args.imgs_fold
+                # self.args.plate_protocol = self.args.imgs_fold
                 self.args.img_filepaths = list(self.args.imgs_dir.rglob(f"*.{self.args.img_suffix}"))
                 
-            elif "cimini" in self.args.imgs_fold.lower():
+            elif "cimini" in self.args.plate_protocol:
                 self.args.img_suffix = "tiff"
-                self.args.plate_protocol = self.args.imgs_fold
+                # self.args.plate_protocol = self.args.imgs_fold
                 self.args.img_filepaths = list(self.args.imgs_dir.rglob(f"*.{self.args.img_suffix}"))
                 
                 """ 
