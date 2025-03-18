@@ -97,6 +97,7 @@ class SegmentationPartI:
                 channel_axis=None,
                 resample=False,
                 min_size=self.args.min_sizes["w1"],
+                flow_threshold=0
             )
 
             w2_mask, _, _, _ = self.cellpose_model.eval(
@@ -107,7 +108,8 @@ class SegmentationPartI:
                 z_axis=None,
                 channel_axis=None,
                 resample=False,
-                min_size=self.args.min_sizes["w2"])
+                min_size=self.args.min_sizes["w2"],
+                flow_threshold=0)
         # # print(f"cellpose w1 takes {time.time()-stime} seconds")
         ###########################################################################################
         elif self.args.step2_segmentation_algorithm == "w1=pycle_w2=pycle":
