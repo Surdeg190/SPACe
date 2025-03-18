@@ -39,12 +39,13 @@ def step2_main_run_loop(args):
     N = seg_class.args.N
     ranger = np.arange(N)
     # ranger = tqdm(np.arange(N), total=N)
-    chunked_ranger = chunkify(ranger, 4)
-
-    tasks = []
+    chunked_ranger = chunkify(ranger, 40)
+    i = 0
     for chunk in chunked_ranger:
+        tasks = []
         cellpose_model = create_model(args)
         seg_class.cellpose_model = cellpose_model
+        print(f"Running Cellpaint Step 2 for {i} chunk ...")
         for ii in chunk:
             tasks.append(delayed(seg_class.run_single)(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii]))
         # for obj in gc.get_objects():
@@ -54,6 +55,8 @@ def step2_main_run_loop(args):
         #     except:
         #         pass
         compute(*tasks)
+        print(f"Finished Cellpaint Step 2 for {i} chunk ...")
+        i += 1
 
 
     # tasks = [delayed(seg_class.run_single)(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii]) for ii in ranger]

@@ -63,7 +63,7 @@ class FeatureExtractor:
                 self.w3_mask_filepaths,
                 self.w5_mask_filepaths,
         ):
-            print(it0[0])
+            # print(it0[0])
             assert sort_key_for_imgs(it0[0], "to_get_well_id_and_fov", self.args.plate_protocol) == \
                    sort_key_for_masks(it1) == \
                    sort_key_for_masks(it2) == \

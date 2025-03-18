@@ -53,7 +53,7 @@ def step3_main_run_loop(args, myclass=SegmentationPartII):
             inst = getattr(manager, myclass.__name__)(args)
             N = inst.args.N
             with mp.Pool(processes=inst.num_workers) as pool:
-                for _ in tqdm(pool.imap_unordered(inst.run_multi, np.arange(N)), total=N):
+                for _ in pool.imap_unordered(inst.run_multi, np.arange(N)):
                     pass
             # print(N)
         print(f"Finished Cellpaint step 3 in: {(time.time()-s_time)/3600} hours\n")
