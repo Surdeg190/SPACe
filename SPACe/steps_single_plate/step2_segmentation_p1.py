@@ -8,7 +8,10 @@ from SPACe.steps_single_plate.step0_args import Args
 from SPACe.steps_single_plate._segmentation import SegmentationPartI
 from dask import delayed, compute
 
+from cellpose import models
+
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 
 
 def step2_main_run_loop(args):
@@ -22,7 +25,9 @@ def step2_main_run_loop(args):
         self.args.step1_save_path = args.main_path / args.experiment / "Step1_MasksP1"
     """
     print("Cellpaint Step 2: Cellpose segmentation of Nucleus and Cytoplasm ...")
-    seg_class = SegmentationPartI(args)
+
+    cellpose_model = models.Cellpose(gpu=True, model_type=args.cellpose_model_type, net_avg=False)
+    seg_class = SegmentationPartI(args, cellpose_model)
     s_time = time.time()
     N = seg_class.args.N
     ranger = np.arange(N)

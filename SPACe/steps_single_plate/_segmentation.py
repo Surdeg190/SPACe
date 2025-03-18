@@ -29,7 +29,6 @@ from SPACe.steps_single_plate.step0_args import Args, \
     load_img, sort_key_for_imgs, sort_key_for_masks, set_mask_save_name
 
 from dask import delayed, compute
-import torch
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 device = cle.select_device("RTX")
@@ -63,12 +62,11 @@ class SegmentationPartI:
     # meta_cols = ["exp-id", "well-id", "fov", "treatment", "cell-line", "density", "dosage", "other"]
     # stages = ["0-raw-image", "2-bgsub-image"]
 
-    def __init__(self, args):
+    def __init__(self, args, cellpose_model):
         """self.N is the total number of images (when all their channels are grouped together) in the
         args.main_path\args.experiment\args.plate_protocol folder."""
         self.args = args
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.cellpose_model = models.Cellpose(gpu=True, model_type=self.args.cellpose_model_type, net_avg=False, device=device)
+        self.cellpose_model = cellpose_model
 
         if self.args.mode == "preview":
             self.save_path = self.args.output_path / self.args.experiment / f"Step0_MasksP1-Preview"
