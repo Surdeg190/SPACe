@@ -698,7 +698,7 @@ class Args(object):
         return self.args
 
     def get_wellid2meta(self, sheetname):
-        platemap_filepath = list((self.args.main_path / self.args.experiment).rglob("platemap*.xlsx"))[0]
+        platemap_filepath = self.args.platemap_filepath
         meta = pd.read_excel(platemap_filepath, sheet_name=sheetname)
         meta.index = meta["Unnamed: 0"]
         meta.index.name = "row_id"
