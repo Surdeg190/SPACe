@@ -9,10 +9,17 @@ from SPACe.steps_single_plate._segmentation import SegmentationPartI
 from dask import delayed, compute
 
 from cellpose import models
+import torch
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 
+def chunkify(lst, n):
+    return [lst[i::n] for i in range(n)]
+
+def create_model(args):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    return models.Cellpose(gpu=True, model_type=args.cellpose_model_type, net_avg=False, device=device)
 
 def step2_main_run_loop(args):
     """
@@ -26,15 +33,25 @@ def step2_main_run_loop(args):
     """
     print("Cellpaint Step 2: Cellpose segmentation of Nucleus and Cytoplasm ...")
 
-    cellpose_model = models.Cellpose(gpu=True, model_type=args.cellpose_model_type, net_avg=False)
-    seg_class = SegmentationPartI(args, cellpose_model)
+    seg_class = SegmentationPartI(args, None)
     s_time = time.time()
     N = seg_class.args.N
     ranger = np.arange(N)
     # ranger = tqdm(np.arange(N), total=N)
+    chunked_ranger = chunkify(ranger, 4)
 
-    tasks = [delayed(seg_class.run_single)(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii]) for ii in ranger]
+    tasks = []
+    for chunk in chunked_ranger:
+        cellpose_model = create_model(args)
+        seg_class.cellpose_model = cellpose_model
+        for ii in chunk:
+            tasks.append(delayed(seg_class.run_single)(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii]))
+    
     compute(*tasks)
+
+
+    # tasks = [delayed(seg_class.run_single)(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii]) for ii in ranger]
+    # compute(*tasks)
 
     # for ii in ranger:
     #     seg_class.run_single(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii])
