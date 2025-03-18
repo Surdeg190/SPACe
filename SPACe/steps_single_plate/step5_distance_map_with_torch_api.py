@@ -430,8 +430,8 @@ class WellAggFeatureDistanceMetrics:
 
     def __init__(self, args):
         self.args = args
-        self.load_path = self.args.main_path/self.args.experiment/f"Step{self.analysis_step-1}_Features"
-        self.save_path = self.args.main_path/self.args.experiment/f"Step{self.analysis_step}_DistanceMaps"
+        self.load_path = self.args.output_path/self.args.experiment/f"Step{self.analysis_step-1}_Features"
+        self.save_path = self.args.output_path/self.args.experiment/f"Step{self.analysis_step}_DistanceMaps"
         self.save_path.mkdir(exist_ok=True, parents=True)
 
         self.min_well_cell_count = self.args.min_fov_cell_count * self.args.n_fovs_per_well // 3

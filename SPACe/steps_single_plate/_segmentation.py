@@ -71,10 +71,10 @@ class SegmentationPartI:
         self.cellpose_model = models.Cellpose(gpu=True, model_type=self.args.cellpose_model_type, net_avg=False, device=device)
 
         if self.args.mode == "preview":
-            self.save_path = self.args.main_path / self.args.experiment / f"Step0_MasksP1-Preview"
+            self.save_path = self.args.output_path / self.args.experiment / f"Step0_MasksP1-Preview"
             self.save_path.mkdir(exist_ok=True, parents=True)
         else:
-            self.save_path = self.args.main_path / self.args.experiment / f"Step{self.analysis_step}_MasksP1"
+            self.save_path = self.args.output_path / self.args.experiment / f"Step{self.analysis_step}_MasksP1"
             self.save_path.mkdir(exist_ok=True, parents=True)
 
     def get_cellpose_masks(self, img_channels_filepaths, img_filename_key):
@@ -216,14 +216,14 @@ class SegmentationPartII:
         self.show_masks = show_masks
 
         if self.args.mode == "preview":
-            self.load_path = self.args.main_path / self.args.experiment / f"Step0_MasksP1-Preview"
-            self.save_path = self.args.main_path / self.args.experiment / f"Step0_MasksP2-Preview"
-            self.save_path2 = self.args.main_path / self.args.experiment / f"Step0_MasksColor-Preview"
+            self.load_path = self.args.output_path / self.args.experiment / f"Step0_MasksP1-Preview"
+            self.save_path = self.args.output_path / self.args.experiment / f"Step0_MasksP2-Preview"
+            self.save_path2 = self.args.output_path / self.args.experiment / f"Step0_MasksColor-Preview"
             self.num_workers = self.args.N
         else:
-            self.load_path = self.args.main_path / self.args.experiment / f"Step{self.analysis_step-1}_MasksP1"
-            self.save_path = self.args.main_path / self.args.experiment / f"Step{self.analysis_step}_MasksP2"
-            self.save_path2 = self.args.main_path / self.args.experiment / f"Step{self.analysis_step}_MasksColor"
+            self.load_path = self.args.output_path / self.args.experiment / f"Step{self.analysis_step-1}_MasksP1"
+            self.save_path = self.args.output_path / self.args.experiment / f"Step{self.analysis_step}_MasksP2"
+            self.save_path2 = self.args.output_path / self.args.experiment / f"Step{self.analysis_step}_MasksColor"
         self.save_path.mkdir(exist_ok=True, parents=True)
         self.save_path2.mkdir(exist_ok=True, parents=True)
 
