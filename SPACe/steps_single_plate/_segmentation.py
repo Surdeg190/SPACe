@@ -791,7 +791,7 @@ class SegmentationPartII:
         intersect_ratio = (intersect_area / w1_area)
         return intersect_ratio, w1_mask, w2_mask
 
-    @staticmethod
+    
     def PrevPrime_Reference(N):
         """https://stackoverflow.com/questions/68907414/
         faster-way-to-find-the-biggest-prime-number-less-than-or-equal-to-the-given-inpu"""
