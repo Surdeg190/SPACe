@@ -563,5 +563,4 @@ def step4_main_run_loop(args, myclass=FeatureExtractor):
         step4_single_run_loop(args, myclass)
     else:
         # step4_multi_run_loop(args, myclass)
-        seg_class = myclass(args)
-        step4_single_run_loop(args, seg_class)
+        step4_single_run_loop(args, myclass)
