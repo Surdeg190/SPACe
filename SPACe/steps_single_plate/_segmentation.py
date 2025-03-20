@@ -761,12 +761,17 @@ class SegmentationPartII:
     def get_interect_area_over_w1_area_ratios(self, w1_mask, w2_mask):
         # translate both masks to make sure no two product of values are the same,
         # to create the intersect mask
-        max1, max2 = np.amax(w1_mask), np.amax(w2_mask)
-        max_ = np.maximum(max1, max2)
+        w2_mask = w2_mask.astype(npy.uint32)
+        w1_mask = w1_mask.astype(npy.uint32)
+        max1, max2 = npy.amax(w1_mask), npy.amax(w2_mask)
+        max_ = npy.maximum(max1, max2)
         max_p = self.PrevPrime_Reference(max_+200)
 
         w2_mask[w2_mask > 0] += max_p - 1
         w1_mask[w1_mask > 0] += 1
+
+        w1_mask = w1_mask.astype(np.uint32)
+        w2_mask = w2_mask.astype(np.uint32)
 
         # if max_p > 900:  # to avoid overflow
         #     w1_mask = np.uint32(w1_mask)
