@@ -381,7 +381,8 @@ class Args(object):
             min_fov_cell_count=1,
             distmap_batch_size=64,
             plate_protocol="cimini",
-            platemap_path="platemap/platemap.xlsx"
+            platemap_path="platemap/platemap.xlsx",
+            output_path="results",
     ):
         """
             experiment:
@@ -472,6 +473,7 @@ class Args(object):
         #######################################################################
         self.args.plate_protocol = plate_protocol
         self.args.platemap_path = platemap_path
+        self.args.output_path = output_path
 
         # In case we want to redo analysis after Cell-paint step 3 and the image folder is missing or
         # it has not been transferred!!!
