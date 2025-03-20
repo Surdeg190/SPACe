@@ -306,14 +306,14 @@ class SegmentationPartII:
         # print(f"w5_mask sum: {np.sum(w5_mask)}")
 
         # 4) save
-        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
-        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
-        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 2), w3_mask, check_contrast=False)
-        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 4), w5_mask, check_contrast=False)
-        Image.fromarray(w1_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 0))
-        Image.fromarray(w2_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 1))
-        Image.fromarray(w3_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 2))
-        Image.fromarray(w5_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 4))
+        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
+        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
+        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 2), w3_mask, check_contrast=False)
+        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 4), w5_mask, check_contrast=False)
+        # Image.fromarray(w1_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 0))
+        # Image.fromarray(w2_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 1))
+        # Image.fromarray(w3_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 2))
+        # Image.fromarray(w5_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 4))
 
 
     def run_multi(self, index):
@@ -350,18 +350,18 @@ class SegmentationPartII:
         # print(f"w5_mask sum: {np.sum(w5_mask)}")
 
 
-        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
+        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
         cv2.imwrite(save_name_1, label2rgb(w1_mask, bg_label=0)) #This Works. Try making another variable to hold the name
-        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
+        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
         cv2.imwrite(save_name_2, label2rgb(w2_mask, bg_label=0))
-        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 2), w3_mask, check_contrast=False)
+        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 2), w3_mask, check_contrast=False)
         cv2.imwrite(save_name_3, label2rgb(w3_mask, bg_label=0))
-        # sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 4), w5_mask, check_contrast=False)
+        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 4), w5_mask, check_contrast=False)
         cv2.imwrite(save_name_4, label2rgb(w5_mask, bg_label=0))
-        Image.fromarray(w1_mask).save(self.save_path / set_mask_save_name(well_id, fov, 0))
-        Image.fromarray(w2_mask).save(self.save_path / set_mask_save_name(well_id, fov, 1))
-        Image.fromarray(w3_mask).save(self.save_path / set_mask_save_name(well_id, fov, 2))
-        Image.fromarray(w5_mask).save(self.save_path / set_mask_save_name(well_id, fov, 4))
+        # Image.fromarray(w1_mask).save(self.save_path / set_mask_save_name(well_id, fov, 0))
+        # Image.fromarray(w2_mask).save(self.save_path / set_mask_save_name(well_id, fov, 1))
+        # Image.fromarray(w3_mask).save(self.save_path / set_mask_save_name(well_id, fov, 2))
+        # Image.fromarray(w5_mask).save(self.save_path / set_mask_save_name(well_id, fov, 4))
 
         # print(self.save_path2 / set_mask_save_name(well_id, fov, 0))
         #
