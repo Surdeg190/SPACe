@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 import cv2
 import sympy
-# import numpy as np
+import numpy as npy
 import cupy as np
 import SimpleITK as sitk
 from PIL import Image, ImageFilter
@@ -393,8 +393,8 @@ class SegmentationPartII:
         w2_mask = w2_mask.astype(np.uint32)
 
         # convert to cupy arrays
-        w1_mask = np.array(w1_mask)
-        w2_mask = np.array(w2_mask)
+        w1_mask = npy.array(w1_mask)
+        w2_mask = npy.array(w2_mask)
 
         # slightly smoothen the masks
         # print(f"before smoothening: w1_mask sum: {np.sum(w1_mask)}")
