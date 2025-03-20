@@ -768,9 +768,11 @@ class SegmentationPartII:
         w2_mask = w2_mask.astype(npy.uint32)
         w1_mask = w1_mask.astype(npy.uint32)
         max1, max2 = npy.amax(w1_mask), npy.amax(w2_mask)
+        print(f"max1, max2: {max1}, {max2}")
         max_ = npy.maximum(max1, max2)
+        print(f"max_ before prime: {max_}")
         max_p = self.PrevPrime_Reference(max_+200)
-
+        print(f"max_p after prime: {max_p}")
         w2_mask[w2_mask > 0] += max_p - 1
         w1_mask[w1_mask > 0] += 1
 
