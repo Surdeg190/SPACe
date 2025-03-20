@@ -392,6 +392,10 @@ class SegmentationPartII:
         w1_mask = w1_mask.astype(np.uint32)
         w2_mask = w2_mask.astype(np.uint32)
 
+        # convert to cupy arrays
+        w1_mask = np.array(w1_mask)
+        w2_mask = np.array(w2_mask)
+
         # slightly smoothen the masks
         # print(f"before smoothening: w1_mask sum: {np.sum(w1_mask)}")
         w1_mask = closing(w1_mask, disk(4))
@@ -408,6 +412,9 @@ class SegmentationPartII:
         # stime = time.time()
         if w1_mask.ndim != 2 or w2_mask.ndim != 2:
             raise ValueError("Arrs have to be two dimensional")
+        
+        w1_mask = np.array(w1_mask)
+        w2_mask = np.array(w2_mask)
 
         # remove small objects/cells in botth w1_mask and w2_mask
         w1_mask[(np.bincount(w1_mask.ravel()) < self.args.min_sizes["w1"])[w1_mask]] = 0
