@@ -444,6 +444,10 @@ class SegmentationPartII:
         # intersect_ratio between a nucleus and cyto channel will happen at multiple cyto instances/labels,
         # we have to choose the one with the largest intersection portion,
         # otherwise, if the intersection is not significant we just label the cyto same as the expanded nucleus
+        print(f"w1_mask sum: {np.sum(w1_mask)}")
+        print(f"w2_mask sum: {np.sum(w2_mask)}")
+        print(f"w1_mask type: {w1_mask.dtype}")
+        print(f"w2_mask type: {w2_mask.dtype}")
         intersect_ratios, w1_mask, w2_mask = self.get_interect_area_over_w1_area_ratios(w1_mask, w2_mask)
         m1, m2 = np.amax(w1_mask), np.amax(w2_mask)
         w1_slices = find_objects(w1_mask, max_label=m1)
