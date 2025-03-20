@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 
 import cv2
 import sympy
-import numpy as np
+# import numpy as np
+import cupy as np
 import SimpleITK as sitk
 from PIL import Image, ImageFilter
 import skimage.io as sio
