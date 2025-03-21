@@ -481,7 +481,7 @@ class SegmentationPartII:
             # axes[1, 1].imshow(w2_bbox_before, cmap="gray")
             # axes[1, 2].imshow(np.where(w1_bbox, w2_mask[slc1], 0), cmap="gray")
             # plt.show()
-        w1_mask_dil = dilation(w1_mask, disk(4))
+        w1_mask_dil = dilation(w1_mask.get(), disk(4))
         w1_mask_dil = np.where(np.isin(w1_mask_dil, low_intersect_ids), w1_mask_dil, 0)
         w2_mask = np.where(w1_mask_dil, w1_mask_dil, w2_mask)
         w2_mask[(np.bincount(w2_mask.ravel()) < self.args.min_sizes["w2"])[w2_mask]] = 0
