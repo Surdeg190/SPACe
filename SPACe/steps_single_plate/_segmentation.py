@@ -796,6 +796,7 @@ class SegmentationPartII:
         """https://stackoverflow.com/questions/68907414/
         faster-way-to-find-the-biggest-prime-number-less-than-or-equal-to-the-given-inpu"""
         # tim = time.time()
+        N = int(N)
         for i in range(1 << 14):
             print(f'Iteration {i}', flush = True)
             p = N - i
