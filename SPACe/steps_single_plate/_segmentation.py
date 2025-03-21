@@ -482,6 +482,9 @@ class SegmentationPartII:
             # axes[1, 2].imshow(np.where(w1_bbox, w2_mask[slc1], 0), cmap="gray")
             # plt.show()
         w1_mask_dil = dilation(w1_mask.get(), disk(4))
+        low_intersect_ids = np.array(low_intersect_ids)
+        w1_mask_dil = np.array(w1_mask_dil)
+        w2_mask = np.array(w2_mask)
         w1_mask_dil = np.where(np.isin(w1_mask_dil, low_intersect_ids), w1_mask_dil, 0)
         w2_mask = np.where(w1_mask_dil, w1_mask_dil, w2_mask)
         w2_mask[(np.bincount(w2_mask.ravel()) < self.args.min_sizes["w2"])[w2_mask]] = 0
@@ -510,7 +513,9 @@ class SegmentationPartII:
 
         w1_count = max_
         w2_count = max_
-        w2_slices = find_objects(w2_mask, max_label=m2)
+
+        w2_slices = find_objects(w2_mask.get(), max_label=m2.item())
+        w2_slices = np.array(w2_slices)
         for jj, slc2 in enumerate(w2_slices):
             if slc2 is None:
                 continue
