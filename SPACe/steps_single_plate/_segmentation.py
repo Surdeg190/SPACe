@@ -450,7 +450,7 @@ class SegmentationPartII:
         print(f"w2_mask type: {w2_mask.dtype}")
         intersect_ratios, w1_mask, w2_mask = self.get_interect_area_over_w1_area_ratios(w1_mask, w2_mask)
 
-        m1, m2 = np.amax(w1_mask), np.amax(w2_mask)
+        m1, m2 = np.amax(w1_mask).item(), np.amax(w2_mask).item()
 
         w1_slices = find_objects(w1_mask.get(), max_label=m1)
         # w1_unix = np.setdiff1d(np.unique(w1_mask), 0)
