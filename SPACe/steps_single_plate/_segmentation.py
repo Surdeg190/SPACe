@@ -795,17 +795,18 @@ class SegmentationPartII:
     def PrevPrime_Reference(self, N):
         """https://stackoverflow.com/questions/68907414/
         faster-way-to-find-the-biggest-prime-number-less-than-or-equal-to-the-given-inpu"""
-        tim = time.time()
+        # tim = time.time()
         for i in range(1 << 14):
             print(f'Iteration {i}', flush = True)
             p = N - i
             print(f'p = {p}', flush = True)
             if (p & 1) == 0:
+                print(f'Even {p}', flush = True)
                 continue
             if sympy.isprime(p):
                 print(f'Prime {p}', flush = True)
-                tim = time.time() - tim
-                print(f'ReferenceTime {tim:.3f} sec', flush = True)
+                # tim = time.time() - tim
+                # print(f'ReferenceTime {tim:.3f} sec', flush = True)
                 return p
 
     @staticmethod
