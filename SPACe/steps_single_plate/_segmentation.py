@@ -309,10 +309,22 @@ class SegmentationPartII:
 
         # 4) save
         
-        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask.get(), check_contrast=False)
+        if isinstance(w1_mask, np.ndarray):
+            w1_mask = w1_mask.get()
+        if isinstance(w2_mask, np.ndarray):
+            w2_mask = w2_mask.get()
+        if isinstance(w3_mask, np.ndarray):
+            w3_mask = w3_mask.get()
+        if isinstance(w5_mask, np.ndarray):
+            w5_mask = w5_mask.get()
+
+
+
+
+        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
         sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
-        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 2), w3_mask.get(), check_contrast=False)
-        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 4), w5_mask.get(), check_contrast=False)
+        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 2), w3_mask, check_contrast=False)
+        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 4), w5_mask, check_contrast=False)
         # Image.fromarray(w1_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 0))
         # Image.fromarray(w2_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 1))
         # Image.fromarray(w3_mask).save(self.save_path2 / set_mask_save_name(well_id, fov, 2))
