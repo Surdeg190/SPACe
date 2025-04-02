@@ -478,11 +478,11 @@ class Args(object):
         # In case we want to redo analysis after Cell-paint step 3 and the image folder is missing or
         # it has not been transferred!!!
         if self.args.analysis_part == 1:
-            self.args.imgs_fold = list(filter(
-                lambda x: "Images" in str(x),
-                (self.args.main_path / self.args.experiment).iterdir()))[0].stem
+            # self.args.imgs_fold = list(filter(
+            #     lambda x: "Images" in str(x),
+            #     (self.args.main_path / self.args.experiment).iterdir()))[0].stem
+            self.args.imgs_dir = self.args.experiment
             print("self.args.imgs_fold:", self.args.imgs_fold)
-            self.args.imgs_dir = self.args.main_path / self.args.experiment / self.args.imgs_fold
 
             # Get generic width and height dimensions of the image, in the specific experiment.
             # We assume height and width are the same for every single images, in the same experiment!!!
