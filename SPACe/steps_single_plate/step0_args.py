@@ -482,6 +482,8 @@ class Args(object):
             #     lambda x: "Images" in str(x),
             #     (self.args.main_path / self.args.experiment).iterdir()))[0].stem
             self.args.imgs_dir = self.args.experiment
+            # split the experiment name on / and get the last part
+            self.args.imgs_fold = self.args.imgs_dir.split("/")[-1]
             print("self.args.imgs_fold:", self.args.imgs_fold)
 
             # Get generic width and height dimensions of the image, in the specific experiment.
