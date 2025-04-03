@@ -12,7 +12,7 @@ from sklearn.preprocessing import robust_scale, RobustScaler
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
-from SPACe.steps_single_plate.step0_args import Args
+from SPACe.SPACe.steps_single_plate.step0_args import Args
 import matplotlib.pyplot as plt
 
 """
