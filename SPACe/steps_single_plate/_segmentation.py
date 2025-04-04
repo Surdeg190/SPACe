@@ -549,8 +549,8 @@ class SegmentationPartII:
             w1_unix = npy.setdiff1d(np.unique(w1_mask_bbox), 0)
             w1_img_bbox = npy.where(w2_mask_bbox.get(), img[0][slc2], 0)
             w1_mask_bbox = w1_mask_bbox.get()
-            w1_img_bbox_sitk = sitk.GetImageFromArray(w1_img_bbox)
-            w1_mask_bbox_sitk = sitk.GetImageFromArray(w1_mask_bbox)
+            w1_img_bbox_sitk = sitk.GetImageFromArray(w1_img_bbox.astype(np.uint8))
+            w1_mask_bbox_sitk = sitk.GetImageFromArray(w1_mask_bbox.astype(np.uint8))
 
             # fig, axes = plt.subplots(2, 2, sharex=True, sharey=True)
             # axes[0, 0].imshow(w1_img_bbox, cmap="gray")
@@ -604,7 +604,7 @@ class SegmentationPartII:
                     continue
                 else:  # segment the cytoplasm mask using watershed
                     w2_mask_bbox_wsd = sitk.MorphologicalWatershedFromMarkers(
-                        sitk.SignedMaurerDistanceMap(w2_mask_bbox_sitk != 0),
+                        sitk.SignedMaurerDistanceMap((w2_mask_bbox_sitk) != 0),
                         w1_mask_bbox_sitk,
                         markWatershedLine=False)
                     w2_mask_bbox_wsd = sitk.GetArrayFromImage(sitk.Mask(
@@ -662,7 +662,7 @@ class SegmentationPartII:
 
         # w5: mito channel
         w5_img = npy.where(erosion(w1_mask.get(), disk(2)) | (w2_mask == 0), 0, img[4])
-        w5_mask_global = sitk.GetArrayFromImage(self.otsu_filter.Execute(sitk.GetImageFromArray(w5_img)))
+        w5_mask_global = sitk.GetArrayFromImage(self.otsu_filter.Execute(sitk.GetImageFromArray(w5_img.astype(np.uint8))))
         w5_mask_global = w5_mask_global.astype(np.uint16)
         w5_mask_local = np.zeros_like(img[4], dtype=np.uint16)
         # create cytoplasmic mask excluding the nucleus
@@ -689,7 +689,7 @@ class SegmentationPartII:
             lb = npy.sum(w5_img_tmp < threshold_otsu(w5_img_tmp)) / npy.size(w5_img_tmp)
             in_range = tuple(npy.percentile(w5_img_tmp, (lb, 99.9)))
             w5_img_tmp = rescale_intensity(w5_img_tmp, in_range=in_range)
-            w5_mask_tmp = sitk.GetArrayFromImage(self.otsu_filter.Execute(sitk.GetImageFromArray(w5_img_tmp)))
+            w5_mask_tmp = sitk.GetArrayFromImage(self.otsu_filter.Execute(sitk.GetImageFromArray(w5_img_tmp.astype(np.uint8))))
             # w5_mask_tmp = np.where(w5_mask_tmp, obj_label, 0)
             # w5_mask_local = w5_mask_local.get()
             w5_mask_local[slc2] = np.asarray(npy.where(w5_bbox.get(), w5_mask_tmp, 0))
@@ -715,7 +715,7 @@ class SegmentationPartII:
             in_range = tuple(npy.percentile(w3_img_tmp, (lb, self.args.w3_local_rescale_intensity_ub)))
             w3_img_tmp = rescale_intensity(w3_img_tmp, in_range=in_range)  # (40, 88), (30, 95)
             w3_mask_tmp = sitk.GetArrayFromImage(self.yen_filter.Execute(
-                sitk.GetImageFromArray(w3_img_tmp)))
+                sitk.GetImageFromArray(w3_img_tmp.astype(np.uint8))))
             # w3_mask_tmp = binary_erosion(w3_mask_tmp, disk(1))
             w3_mask_tmp = label(w3_mask_tmp, connectivity=2)
 
