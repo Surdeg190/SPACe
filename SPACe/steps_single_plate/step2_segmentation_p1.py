@@ -7,6 +7,7 @@ import numpy as np
 from SPACe.SPACe.steps_single_plate.step0_args import Args
 from SPACe.SPACe.steps_single_plate._segmentation import SegmentationPartI
 from dask import delayed, compute
+import dask.array as da
 
 from cellpose import models
 import torch
@@ -37,17 +38,29 @@ def step2_main_run_loop(args):
     seg_class = SegmentationPartI(args, None)
     s_time = time.time()
     N = seg_class.args.N
-    ranger = np.arange(N)
+    # ranger = np.arange(N)
+    img_channels_filepaths_da = da.from_array(seg_class.args.img_channels_filepaths, chunks=100)
+    img_filename_keys_da = da.from_array(seg_class.args.img_filename_keys, chunks=100)
+    # persist in memory
+    img_channels_filepaths_da = img_channels_filepaths_da.persist()
+    img_filename_keys_da = img_filename_keys_da.persist()
+
     # ranger = tqdm(np.arange(N), total=N)
-    chunked_ranger = chunkify(ranger, 40)
-    i = 0
-    for chunk in chunked_ranger:
+    total_chunks = img_channels_filepaths_da.chunks[0]
+    
+    for i in range(len(img_channels_filepaths_da.chunks[0])):
         tasks = []
         cellpose_model = create_model(args)
         seg_class.cellpose_model = cellpose_model
-        print(f"Running Cellpaint Step 2 for {i} chunk ...")
-        for ii in chunk:
-            tasks.append(delayed(seg_class.run_single)(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii]))
+        # put img_channels_filepaths and img_filename_keys in a dask array
+
+        print(f"Running Cellpaint Step 2 for chunk {i}/{total_chunks} ...")
+
+        img_channels_chunk = img_channels_filepaths_da.blocks[i].compute()
+        img_filename_keys_chunk = img_filename_keys_da.blocks[i].compute()
+
+        for img_channels, img_filename_key in zip(img_channels_chunk, img_filename_keys_chunk):
+            tasks.append(delayed(seg_class.run_single)(img_channels, img_filename_key))
         # for obj in gc.get_objects():
         #     try:
         #         if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
@@ -55,8 +68,8 @@ def step2_main_run_loop(args):
         #     except:
         #         pass
         compute(*tasks)
-        print(f"Finished Cellpaint Step 2 for {i} chunk ...")
-        i += 1
+        print(f"Finished Cellpaint Step 2 for {i}/{total_chunks} chunk ...")
+        
 
 
     # tasks = [delayed(seg_class.run_single)(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii]) for ii in ranger]
