@@ -63,17 +63,23 @@ def step3_main_run_loop(args, myclass=SegmentationPartII):
 
         seg_class = myclass(args)
         N = seg_class.args.N
-        ranger = np.arange(N)
-        chunked_ranger = chunkify(ranger, 40)
-        i = 0
-        for chunk in chunked_ranger:
-            tasks = []
-            print(f"Running Cellpaint Step 3 for {i} chunk ...")
-            for ii in chunk:
-                tasks.append(delayed(seg_class.run_single)(ii))
-            i += 1
-            compute(*tasks)
-            print(f"Finished Cellpaint Step 3 for {i} chunk ...")
+        args.logger.info(f"Creating {N} tasks for Cellpaint Step 3 ...")
+        tasks = [delayed(seg_class.run_single)(ii) for ii in range(N)]
+        args.logger.info(f"Finished creating {N} tasks for Cellpaint Step 3 ...")
 
 
+        # ranger = np.arange(N)
+        # chunked_ranger = chunkify(ranger, 40)
+        # i = 0
+        # for chunk in chunked_ranger:
+        #     tasks = []
+        #     print(f"Running Cellpaint Step 3 for {i} chunk ...")
+        #     for ii in chunk:
+        #         tasks.append(delayed(seg_class.run_single)(ii))
+        #     i += 1
+        #     compute(*tasks)
+        #     print(f"Finished Cellpaint Step 3 for {i} chunk ...")
+
+        return tasks
         print(f"Finished Cellpaint step 3 in: {(time.time()-s_time)/3600} hours\n")
+
