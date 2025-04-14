@@ -33,10 +33,9 @@ def step2_main_run_loop(args):
         It saves the two masks as separate png files into:
         self.args.step1_save_path = args.main_path / args.experiment / "Step1_MasksP1"
     """
-    print("Cellpaint Step 2: Cellpose segmentation of Nucleus and Cytoplasm ...")
+    args.logger.info("Cellpaint Step 2: Cellpose segmentation of Nucleus and Cytoplasm ...")
 
     seg_class = SegmentationPartI(args, None)
-    s_time = time.time()
     N = seg_class.args.N
     # ranger = np.arange(N)
     img_channels_filepaths_da = da.from_array(seg_class.args.img_channels_filepaths, chunks=100)
@@ -45,45 +44,18 @@ def step2_main_run_loop(args):
     img_channels_filepaths_da = img_channels_filepaths_da.persist()
     img_filename_keys_da = img_filename_keys_da.persist()
 
-    # ranger = tqdm(np.arange(N), total=N)
-    total_chunks = len(img_channels_filepaths_da.chunks[0])
+    tasks = []
     
-    for i in range(len(img_channels_filepaths_da.chunks[0])):
-        tasks = []
-        cellpose_model = create_model(args)
-        seg_class.cellpose_model = cellpose_model
-        # put img_channels_filepaths and img_filename_keys in a dask array
-
-        args.logger.info(f"Starting Cellpaint Step 2 for chunk {i}/{total_chunks} ...")
-
-        img_channels_chunk = img_channels_filepaths_da.blocks[i].compute()
-        img_filename_keys_chunk = img_filename_keys_da.blocks[i].compute()
-
-        for img_channels, img_filename_key in zip(img_channels_chunk, img_filename_keys_chunk):
-            tasks.append(delayed(seg_class.run_single)(img_channels, img_filename_key))
-        # for obj in gc.get_objects():
-        #     try:
-        #         if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-        #             print(type(obj), obj.size())
-        #     except:
-        #         pass
-        compute(tasks)
-        args.logger.info(f"Finished Cellpaint Step 2 for {i}/{total_chunks} chunk ...")
-        del tasks
-        del img_channels_chunk
-        del img_filename_keys_chunk
-        del cellpose_model
-    gc.collect()
-    torch.cuda.empty_cache()
-        
-
+    args.logger.info(f"Creating {N} tasks for Cellpaint Step 2 ...")
+    for img_channels, img_filename_key in zip(img_channels_filepaths_da, img_filename_keys_da):
+        tasks.append(delayed(seg_class.run_single)(img_channels, img_filename_key))
 
     # tasks = [delayed(seg_class.run_single)(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii]) for ii in ranger]
     # compute(*tasks)
 
     # for ii in ranger:
-    #     seg_class.run_single(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii])
-    args.logger.info(f"Finished Cellpaint Step 2 for {N} images in {(time.time() - s_time) / 3600} hours\n")
+    #     seg_class.run_single(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii])p 2 for {N} images in {(time.time() - s_time) / 3600} hours\n")
+    return tasks    
     
 
 
