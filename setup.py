@@ -14,7 +14,7 @@ setup(
     url='https://github.com/dlabate/SPACe',
     packages=find_packages(exclude=[]),
     install_requires=[
-        'cellpose==2.2',
+        'cellpose==3.1.1.1',
         'torch>=1.6', 'torchvision', 'pyclesperanto-prototype', 'sympy',
         'tifffile',
         'numpy>=1.20.0', 'scipy', 'scikit-image>=0.20.0', 'scikit-learn',
