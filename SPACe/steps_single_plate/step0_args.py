@@ -22,10 +22,21 @@ import skimage.io as sio
 import dask.array as da
 from dask import delayed, compute
 import dask_image
+import logging
 
 # TODO: Add proper documentation for all the different class
 # TODO: Add a README file that explains the steps,
 #  the purpose behind each step, as well as the arguments that can be changed
+
+def createLogger():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger
 
 
 def sort_key_for_imgs(file_path, sort_purpose, plate_protocol):
@@ -474,6 +485,8 @@ class Args(object):
         self.args.plate_protocol = plate_protocol
         self.args.platemap_path = platemap_path
         self.args.output_path = output_path
+
+        self.args.logger = createLogger()
 
         # In case we want to redo analysis after Cell-paint step 3 and the image folder is missing or
         # it has not been transferred!!!
