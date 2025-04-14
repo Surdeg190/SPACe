@@ -21,7 +21,7 @@ def chunkify(lst, n):
 
 def create_model(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    return models.Cellpose(gpu=True, model_type=args.cellpose_model_type, net_avg=False, device=device)
+    return models.Cellpose(gpu=True, model_type=args.cellpose_model_type, device=device)
 
 def step2_main_run_loop(args):
     """
@@ -46,7 +46,7 @@ def step2_main_run_loop(args):
     img_filename_keys_da = img_filename_keys_da.persist()
 
     # ranger = tqdm(np.arange(N), total=N)
-    total_chunks = img_channels_filepaths_da.chunks[0]
+    total_chunks = len(img_channels_filepaths_da.chunks[0])
     
     for i in range(len(img_channels_filepaths_da.chunks[0])):
         tasks = []
@@ -54,7 +54,7 @@ def step2_main_run_loop(args):
         seg_class.cellpose_model = cellpose_model
         # put img_channels_filepaths and img_filename_keys in a dask array
 
-        print(f"Running Cellpaint Step 2 for chunk {i}/{total_chunks} ...")
+        args.logger.info(f"Starting Cellpaint Step 2 for chunk {i}/{total_chunks} ...")
 
         img_channels_chunk = img_channels_filepaths_da.blocks[i].compute()
         img_filename_keys_chunk = img_filename_keys_da.blocks[i].compute()
@@ -67,8 +67,14 @@ def step2_main_run_loop(args):
         #             print(type(obj), obj.size())
         #     except:
         #         pass
-        compute(*tasks)
-        print(f"Finished Cellpaint Step 2 for {i}/{total_chunks} chunk ...")
+        compute(tasks)
+        args.logger.info(f"Finished Cellpaint Step 2 for {i}/{total_chunks} chunk ...")
+        del tasks
+        del img_channels_chunk
+        del img_filename_keys_chunk
+        del cellpose_model
+    gc.collect()
+    torch.cuda.empty_cache()
         
 
 
@@ -77,7 +83,8 @@ def step2_main_run_loop(args):
 
     # for ii in ranger:
     #     seg_class.run_single(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii])
-    print(f"Finished Cellpaint Step 2 for {N} images  in {(time.time() - s_time) / 3600} hours\n")
+    args.logger.info(f"Finished Cellpaint Step 2 for {N} images in {(time.time() - s_time) / 3600} hours\n")
+    
 
 
 if __name__ == "__main__":
