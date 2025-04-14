@@ -35,7 +35,8 @@ def step2_main_run_loop(args):
     """
     args.logger.info("Cellpaint Step 2: Cellpose segmentation of Nucleus and Cytoplasm ...")
 
-    seg_class = SegmentationPartI(args, None)
+    cellpose_model = create_model(args)
+    seg_class = SegmentationPartI(args, cellpose_model=cellpose_model)
     N = seg_class.args.N
     # ranger = np.arange(N)
     img_channels_filepaths_da = da.from_array(seg_class.args.img_channels_filepaths, chunks=100)
