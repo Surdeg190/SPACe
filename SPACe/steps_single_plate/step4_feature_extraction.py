@@ -1,17 +1,17 @@
 import time
 from tqdm import tqdm
-from pathlib import WindowsPath
+# from pathlib import WindowsPath
 
 
 import numpy as np
 import pandas as pd
 
 import cv2
-import tifffile
-import skimage.io as sio
+# import tifffile
+# import skimage.io as sio
 from skimage.measure import label
 from scipy.ndimage import find_objects
-from scipy.stats import median_abs_deviation
+# from scipy.stats import median_abs_deviation
 
 from SPACe.SPACe.utils.shared_memory import MyBaseManager, TestProxy, create_shared_np_num_arr
 from SPACe.SPACe.utils.skimage_regionprops_extension import RegionPropertiesExtension, TEXTURE_FEATURE_NAMES
@@ -20,10 +20,12 @@ from SPACe.SPACe.steps_single_plate.step0_args import Args, load_img, \
 
 import re
 import warnings
-from PIL import Image
-from ctypes import c_int, c_float
+# from PIL import Image
+# from ctypes import c_int, c_float
 import multiprocessing as mp
-from functools import partial, lru_cache
+# from functools import partial, lru_cache
+
+import dask.bag as db
 
 
 class FeatureExtractor:
@@ -263,8 +265,8 @@ class FeatureExtractor:
         #       f"{np.amax(mito_mask)}  "
         #       )
 
-        import matplotlib.pyplot as plt
-        from skimage.color import label2rgb
+        # import matplotlib.pyplot as plt
+        # from skimage.color import label2rgb
         # fig, axes = plt.subplots(1, 5, sharex=True, sharey=True)
         # axes[0].imshow(label2rgb(nucleus_mask), cmap="gray")
         # axes[1].imshow(label2rgb(cyto_mask), cmap="gray")
@@ -448,20 +450,37 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
     # intensity_features = np.zeros((T, len(inst.args.intensity_feature_cols)), dtype=np.float32)
     # texture_features = np.zeros((T, len(inst.args.texture_feature_cols)), dtype=np.float32)
 
-    for idx in tqdm(range(inst.args.N), total=inst.args.N):
-            out = inst.step2_get_features(idx)
-            if out is not None:
-                ncells = out[0].shape[0]
-                start = n_rows
-                end = start + ncells
-                # metadata, bbox_, misc_, shape_, intensity_, texture_ = out
-                metadata_features[start:end, :] = out[0]
-                bbox_features[start:end, :] = out[1]
-                misc_features[start:end, :] = out[2]
-                shape_features[start:end, :] = out[3]
-                intensity_features[start:end, :] = out[4]
-                texture_features[start:end, :] = out[5]
-                n_rows = end
+    bag = db.from_sequence(range(inst.args.N), partition_size=50)
+
+    bag = bag.map(
+        lambda idx: process_feature_extraction(
+            inst, idx, metadata_features, bbox_features, misc_features,
+            shape_features, intensity_features, texture_features
+        )
+    )
+
+    results = bag.compute()
+
+
+    n_rows = 0
+    for idx in results:
+        if idx is not None:
+            n_rows += inst.N_ub
+
+    # for idx in tqdm(range(inst.args.N), total=inst.args.N):
+    #         out = inst.step2_get_features(idx)
+    #         if out is not None:
+    #             ncells = out[0].shape[0]
+    #             start = n_rows
+    #             end = start + ncells
+    #             # metadata, bbox_, misc_, shape_, intensity_, texture_ = out
+    #             metadata_features[start:end, :] = out[0]
+    #             bbox_features[start:end, :] = out[1]
+    #             misc_features[start:end, :] = out[2]
+    #             shape_features[start:end, :] = out[3]
+    #             intensity_features[start:end, :] = out[4]
+    #             texture_features[start:end, :] = out[5]
+    #             n_rows = end
 
     metadata_features = metadata_features[0:n_rows]
     bbox_features = bbox_features[0:n_rows]
@@ -485,6 +504,29 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
     shape_features.to_csv(inst.save_path / f"shape_features.csv", index=False, float_format="%.2f")
     intensity_features.to_csv(inst.save_path / f"intensity_features.csv", index=False, float_format="%.2f")
     texture_features.to_csv(inst.save_path / f"texture_features.csv", index=False, float_format="%.2f")
+
+
+def process_feature_extraction(inst, idx, metadata_features, bbox_features, misc_features,
+                               shape_features, intensity_features, texture_features):
+    """
+    Extract features for a single index and update shared memory arrays.
+    """
+    out = inst.step2_get_features(idx)
+    if out is None:
+        return None
+
+    ncells = out[0].shape[0]
+    start = idx * inst.N_ub
+    end = start + ncells
+
+    metadata_features[start:end, :] = out[0]
+    bbox_features[start:end, :] = out[1]
+    misc_features[start:end, :] = out[2]
+    shape_features[start:end, :] = out[3]
+    intensity_features[start:end, :] = out[4]
+    texture_features[start:end, :] = out[5]
+
+    return idx  # Return the index for tracking
 
 
 def step4_multi_run_loop(args, myclass=FeatureExtractor):
