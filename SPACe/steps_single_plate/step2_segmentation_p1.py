@@ -54,7 +54,7 @@ def step2_main_run_loop(args):
 
     data = list(zip(seg_class.args.img_channels_filepaths, seg_class.args.img_filename_keys))
 
-    bag = db.from_sequence(data, partition_size=100)
+    bag = db.from_sequence(data, partition_size=50)
     tasks = bag.map(lambda x: seg_class.run_single(x[0], x[1]))
 
     # tasks = [delayed(seg_class.run_single)(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii]) for ii in ranger]
