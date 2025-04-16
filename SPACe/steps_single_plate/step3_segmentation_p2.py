@@ -1,16 +1,6 @@
-import os
 import time
 from tqdm import tqdm
-from pathlib import WindowsPath
-
-import numpy as np
-import multiprocessing as mp
-
-from SPACe.SPACe.steps_single_plate.step0_args import Args
-from SPACe.SPACe.utils.shared_memory import MyBaseManager, TestProxy
 from SPACe.SPACe.steps_single_plate._segmentation import SegmentationPartII
-
-from dask import delayed, compute
 import dask.bag as db
 
 def chunkify(lst, n):
@@ -85,5 +75,4 @@ def step3_main_run_loop(args, myclass=SegmentationPartII):
         #     print(f"Finished Cellpaint Step 3 for {i} chunk ...")
 
         return tasks_bag
-        print(f"Finished Cellpaint step 3 in: {(time.time()-s_time)/3600} hours\n")
 
