@@ -11,6 +11,7 @@ from SPACe.SPACe.utils.shared_memory import MyBaseManager, TestProxy
 from SPACe.SPACe.steps_single_plate._segmentation import SegmentationPartII
 
 from dask import delayed, compute
+import dask.bag as db
 
 def chunkify(lst, n):
     return list([lst[i::n] for i in range(n)])
@@ -64,7 +65,10 @@ def step3_main_run_loop(args, myclass=SegmentationPartII):
         seg_class = myclass(args)
         N = seg_class.args.N
         args.logger.info(f"Creating {N} tasks for Cellpaint Step 3 ...")
-        tasks = [delayed(seg_class.run_single)(ii) for ii in range(N)]
+        
+        bag = db.from_sequence(range(N), partition_size=50)
+        tasks_bag = bag.map(lambda ii: seg_class.run_single(ii))
+
         args.logger.info(f"Finished creating {N} tasks for Cellpaint Step 3 ...")
 
 
@@ -80,6 +84,6 @@ def step3_main_run_loop(args, myclass=SegmentationPartII):
         #     compute(*tasks)
         #     print(f"Finished Cellpaint Step 3 for {i} chunk ...")
 
-        return tasks
+        return tasks_bag
         print(f"Finished Cellpaint step 3 in: {(time.time()-s_time)/3600} hours\n")
 
