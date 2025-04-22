@@ -458,7 +458,7 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
     intensity_features = da.zeros((T, len(inst.args.intensity_feature_cols)), dtype=np.float32)
     texture_features = da.zeros((T, len(inst.args.texture_feature_cols)), dtype=np.float32)
 
-    bag = db.from_sequence(range(inst.args.N), partition_size=50)
+    bag = db.from_sequence(range(inst.args.N), partition_size=20)
 
     bag = bag.map(
         lambda idx: process_feature_extraction(
