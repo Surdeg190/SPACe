@@ -451,7 +451,7 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
     # intensity_features = np.zeros((T, len(inst.args.intensity_feature_cols)), dtype=np.float32)
     # texture_features = np.zeros((T, len(inst.args.texture_feature_cols)), dtype=np.float32)
 
-    metadata_features = da.zeros((T, len(inst.args.metadata_feature_cols)), dtype=object)
+    metadata_features = np.zeros((T, len(inst.args.metadata_feature_cols)), dtype=object)
     bbox_features = da.zeros((T, len(inst.args.bbox_feature_cols)), dtype=np.float32)
     misc_features = da.zeros((T, len(inst.args.misc_feature_cols)), dtype=np.float32)
     shape_features = da.zeros((T, len(inst.args.shape_feature_cols)), dtype=np.float32)
