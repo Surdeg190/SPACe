@@ -469,7 +469,7 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
 
     results = bag.compute()
 
-    metadata_features = metadata_features.compute()
+    metadata_features = metadata_features
     bbox_features = bbox_features.compute()
     misc_features = misc_features.compute()
     shape_features = shape_features.compute()
