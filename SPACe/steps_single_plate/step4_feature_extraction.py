@@ -26,6 +26,7 @@ import multiprocessing as mp
 # from functools import partial, lru_cache
 
 import dask.bag as db
+import dask.array as da
 
 
 class FeatureExtractor:
@@ -436,12 +437,12 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
     n_rows = 0
     inst = myclass(args)
     T = inst.args.N * inst.N_ub
-    metadata_features = np.zeros((T, len(inst.args.metadata_feature_cols)), dtype=object)
-    bbox_features = create_shared_np_num_arr((T, len(inst.args.bbox_feature_cols)), c_dtype="c_float")
-    misc_features = create_shared_np_num_arr((T, len(inst.args.misc_feature_cols)), c_dtype="c_float")
-    shape_features = create_shared_np_num_arr((T, len(inst.args.shape_feature_cols)), c_dtype="c_float")
-    intensity_features = create_shared_np_num_arr((T, len(inst.args.intensity_feature_cols)), c_dtype="c_float")
-    texture_features = create_shared_np_num_arr((T, len(inst.args.texture_feature_cols)), c_dtype="c_float")
+    # metadata_features = np.zeros((T, len(inst.args.metadata_feature_cols)), dtype=object)
+    # bbox_features = create_shared_np_num_arr((T, len(inst.args.bbox_feature_cols)), c_dtype="c_float")
+    # misc_features = create_shared_np_num_arr((T, len(inst.args.misc_feature_cols)), c_dtype="c_float")
+    # shape_features = create_shared_np_num_arr((T, len(inst.args.shape_feature_cols)), c_dtype="c_float")
+    # intensity_features = create_shared_np_num_arr((T, len(inst.args.intensity_feature_cols)), c_dtype="c_float")
+    # texture_features = create_shared_np_num_arr((T, len(inst.args.texture_feature_cols)), c_dtype="c_float")
 
     # metadata_features = np.zeros((T, len(inst.args.metadata_feature_cols)), dtype=object)
     # bbox_features = np.zeros((T, len(inst.args.bbox_feature_cols)), dtype=np.float32)
@@ -449,6 +450,13 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
     # shape_features = np.zeros((T, len(inst.args.shape_feature_cols)), dtype=np.float32)
     # intensity_features = np.zeros((T, len(inst.args.intensity_feature_cols)), dtype=np.float32)
     # texture_features = np.zeros((T, len(inst.args.texture_feature_cols)), dtype=np.float32)
+
+    metadata_features = da.zeros((T, len(inst.args.metadata_feature_cols)), dtype=object)
+    bbox_features = da.zeros((T, len(inst.args.bbox_feature_cols)), dtype=np.float32)
+    misc_features = da.zeros((T, len(inst.args.misc_feature_cols)), dtype=np.float32)
+    shape_features = da.zeros((T, len(inst.args.shape_feature_cols)), dtype=np.float32)
+    intensity_features = da.zeros((T, len(inst.args.intensity_feature_cols)), dtype=np.float32)
+    texture_features = da.zeros((T, len(inst.args.texture_feature_cols)), dtype=np.float32)
 
     bag = db.from_sequence(range(inst.args.N), partition_size=50)
 
@@ -461,6 +469,12 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
 
     results = bag.compute()
 
+    metadata_features = metadata_features.compute()
+    bbox_features = bbox_features.compute()
+    misc_features = misc_features.compute()
+    shape_features = shape_features.compute()
+    intensity_features = intensity_features.compute()
+    texture_features = texture_features.compute()
 
     n_rows = 0
     for idx in results:
