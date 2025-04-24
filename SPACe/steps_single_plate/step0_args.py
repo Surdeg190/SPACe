@@ -7,7 +7,6 @@ from string import ascii_lowercase, ascii_uppercase
 
 import cv2
 import math
-import dask_image.imread
 import xlrd
 import string
 import random
