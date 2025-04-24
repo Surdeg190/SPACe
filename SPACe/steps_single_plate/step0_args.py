@@ -20,7 +20,6 @@ import skimage.io as sio
 
 import dask.array as da
 from dask import delayed, compute
-import dask_image
 import logging
 
 # TODO: Add proper documentation for all the different class
