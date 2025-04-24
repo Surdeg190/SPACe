@@ -33,29 +33,12 @@ def step2_main_run_loop(args):
     cellpose_model = create_model(args)
     seg_class = SegmentationPartI(args, cellpose_model=cellpose_model)
     N = seg_class.args.N
-    # # ranger = np.arange(N)
-    # img_channels_filepaths_da = da.from_array(seg_class.args.img_channels_filepaths, chunks=100)
-    # img_filename_keys_da = da.from_array(seg_class.args.img_filename_keys, chunks=100)
-    # # persist in memory
-    # img_channels_filepaths_da = img_channels_filepaths_da.persist()
-    # img_filename_keys_da = img_filename_keys_da.persist()
-
-    # tasks = []
     
     args.logger.info(f"Creating {N} tasks for Cellpaint Step 2 ...")
-    # for img_channels, img_filename_key in zip(img_channels_filepaths_da, img_filename_keys_da):
-    #     tasks.append(delayed(seg_class.run_single)(img_channels, img_filename_key))
-
     data = list(zip(seg_class.args.img_channels_filepaths, seg_class.args.img_filename_keys))
 
     bag = db.from_sequence(data, partition_size=50)
     tasks = bag.map(lambda x: seg_class.run_single(x[0], x[1]))
-
-    # tasks = [delayed(seg_class.run_single)(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii]) for ii in ranger]
-    # compute(*tasks)
-
-    # for ii in ranger:
-    #     seg_class.run_single(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii])p 2 for {N} images in {(time.time() - s_time) / 3600} hours\n")
     return tasks    
     
 

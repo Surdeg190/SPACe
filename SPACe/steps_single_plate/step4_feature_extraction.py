@@ -434,52 +434,13 @@ class FeatureExtractor:
 def step4_single_run_loop(args, myclass=FeatureExtractor):
 
     # 2) get features
-    n_rows = 0
     inst = myclass(args)
-    T = inst.args.N * inst.N_ub
-    # metadata_features = np.zeros((T, len(inst.args.metadata_feature_cols)), dtype=object)
-    # bbox_features = create_shared_np_num_arr((T, len(inst.args.bbox_feature_cols)), c_dtype="c_float")
-    # misc_features = create_shared_np_num_arr((T, len(inst.args.misc_feature_cols)), c_dtype="c_float")
-    # shape_features = create_shared_np_num_arr((T, len(inst.args.shape_feature_cols)), c_dtype="c_float")
-    # intensity_features = create_shared_np_num_arr((T, len(inst.args.intensity_feature_cols)), c_dtype="c_float")
-    # texture_features = create_shared_np_num_arr((T, len(inst.args.texture_feature_cols)), c_dtype="c_float")
-
-    # metadata_features = np.zeros((T, len(inst.args.metadata_feature_cols)), dtype=object)
-    # bbox_features = np.zeros((T, len(inst.args.bbox_feature_cols)), dtype=np.float32)
-    # misc_features = np.zeros((T, len(inst.args.misc_feature_cols)), dtype=np.float32)
-    # shape_features = np.zeros((T, len(inst.args.shape_feature_cols)), dtype=np.float32)
-    # intensity_features = np.zeros((T, len(inst.args.intensity_feature_cols)), dtype=np.float32)
-    # texture_features = np.zeros((T, len(inst.args.texture_feature_cols)), dtype=np.float32)
-
-    # metadata_features = np.zeros((T, len(inst.args.metadata_feature_cols)), dtype=object)
-    # bbox_features = da.zeros((T, len(inst.args.bbox_feature_cols)), dtype=np.float32)
-    # misc_features = da.zeros((T, len(inst.args.misc_feature_cols)), dtype=np.float32)
-    # shape_features = da.zeros((T, len(inst.args.shape_feature_cols)), dtype=np.float32)
-    # intensity_features = da.zeros((T, len(inst.args.intensity_feature_cols)), dtype=np.float32)
-    # texture_features = da.zeros((T, len(inst.args.texture_feature_cols)), dtype=np.float32)
-
-    # bag = db.from_sequence(range(inst.args.N), partition_size=20)
-
-    # bag = bag.map(
-    #     lambda idx: process_feature_extraction(
-    #         inst, idx, metadata_features, bbox_features, misc_features,
-    #         shape_features, intensity_features, texture_features
-    #     )
-    # )
-
-
+    
     bag = db.from_sequence(range(inst.args.N), partition_size=20)
 
     bag = bag.map(lambda idx: process_feature_extraction(inst, idx))
 
     results = bag.compute()
-
-    # metadata_features = metadata_features
-    # bbox_features = bbox_features.compute()
-    # misc_features = misc_features.compute()
-    # shape_features = shape_features.compute()
-    # intensity_features = intensity_features.compute()
-    # texture_features = texture_features.compute()
 
     metadata_features = []
     bbox_features = []
@@ -502,34 +463,7 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
     misc_features = np.vstack(misc_features)
     shape_features = np.vstack(shape_features)
     intensity_features = np.vstack(intensity_features)
-    texture_features = np.vstack(texture_features)        
-
-    # n_rows = 0
-    # for idx in results:
-    #     if idx is not None:
-    #         n_rows += inst.N_ub
-
-    # for idx in tqdm(range(inst.args.N), total=inst.args.N):
-    #         out = inst.step2_get_features(idx)
-    #         if out is not None:
-    #             ncells = out[0].shape[0]
-    #             start = n_rows
-    #             end = start + ncells
-    #             # metadata, bbox_, misc_, shape_, intensity_, texture_ = out
-    #             metadata_features[start:end, :] = out[0]
-    #             bbox_features[start:end, :] = out[1]
-    #             misc_features[start:end, :] = out[2]
-    #             shape_features[start:end, :] = out[3]
-    #             intensity_features[start:end, :] = out[4]
-    #             texture_features[start:end, :] = out[5]
-    #             n_rows = end
-
-    # metadata_features = metadata_features[0:n_rows]
-    # bbox_features = bbox_features[0:n_rows]
-    # misc_features = misc_features[0:n_rows]
-    # shape_features = shape_features[0:n_rows]
-    # intensity_features = intensity_features[0:n_rows]
-    # texture_features = texture_features[0:n_rows]
+    texture_features = np.vstack(texture_features)
 
     # save features and metadata
     print("converting features numpy arrays to a pandas dataframes and saving them as csv files ...")
@@ -564,95 +498,13 @@ def process_feature_extraction(inst, idx):
     if out is None:
         return None
 
-    # ncells = out[0].shape[0]
-    # start = idx * inst.N_ub
-    # end = start + ncells
-
-    # metadata_features[start:end, :] = out[0]
-    # bbox_features[start:end, :] = out[1]
-    # misc_features[start:end, :] = out[2]
-    # shape_features[start:end, :] = out[3]
-    # intensity_features[start:end, :] = out[4]
-    # texture_features[start:end, :] = out[5]
-
-    # return idx  # Return the index for tracking
     return out
 
 
-def step4_multi_run_loop(args, myclass=FeatureExtractor):
-    """ We have to Register the FeatureExtractor class object as well as its attributes as shared using:
-    https://stackoverflow.com/questions/26499548/accessing-an-attribute-of-a-multiprocessing-proxy-of-a-class"""
-    start_time = time.time()
-    print("Cellpaint Step 4: feature extraction ...")
-    MyManager = MyBaseManager()
-    # register the custom class on the custom manager
-    MyManager.register(myclass.__name__, myclass, TestProxy)
-    # create a new manager instance
-    with MyManager as manager:
-        inst = getattr(manager, myclass.__name__)(args)
-        n_rows = 0
-        T = inst.args.N * inst.N_ub
-        metadata_features = np.zeros((T, len(inst.args.metadata_feature_cols)), dtype=object)
-        bbox_features = create_shared_np_num_arr((T, len(inst.args.bbox_feature_cols)), c_dtype="c_float")
-        misc_features = create_shared_np_num_arr((T, len(inst.args.misc_feature_cols)), c_dtype="c_float")
-        shape_features = create_shared_np_num_arr((T, len(inst.args.shape_feature_cols)), c_dtype="c_float")
-        intensity_features = create_shared_np_num_arr((T, len(inst.args.intensity_feature_cols)), c_dtype="c_float")
-        texture_features = create_shared_np_num_arr((T, len(inst.args.texture_feature_cols)), c_dtype="c_float")
-
-        # metadata_features = np.zeros((T, len(inst.args.metadata_feature_cols)), dtype=object)
-        # bbox_features = np.zeros((T, len(inst.args.bbox_feature_cols)), dtype=np.float32)
-        # misc_features = np.zeros((T, len(inst.args.misc_feature_cols)), dtype=np.float32)
-        # shape_features = np.zeros((T, len(inst.args.shape_feature_cols)), dtype=np.float32)
-        # intensity_features = np.zeros((T, len(inst.args.intensity_feature_cols)), dtype=np.float32)
-        # texture_features = np.zeros((T, len(inst.args.texture_feature_cols)), dtype=np.float32)
-
-        with mp.Pool(processes=inst.num_workers) as pool:
-            """Using pool.imap whichs preserve order, so that no two processes write to the same row!!!"""
-            for out in tqdm(pool.imap(inst.step2_get_features, range(inst.args.N)), total=inst.args.N):
-                if out is not None:
-                    ncells = out[0].shape[0]
-                    start = n_rows
-                    end = start + ncells
-                    # metadata, bbox_, misc_, shape_, intensity_, texture_ = out
-                    metadata_features[start:end, :] = out[0]
-                    bbox_features[start:end, :] = out[1]
-                    misc_features[start:end, :] = out[2]
-                    shape_features[start:end, :] = out[3]
-                    intensity_features[start:end, :] = out[4]
-                    texture_features[start:end, :] = out[5]
-                    n_rows = end
-
-        metadata_features = metadata_features[0:n_rows]
-        bbox_features = bbox_features[0:n_rows]
-        misc_features = misc_features[0:n_rows]
-        shape_features = shape_features[0:n_rows]
-        intensity_features = intensity_features[0:n_rows]
-        texture_features = texture_features[0:n_rows]
-
-        # save features and metadata
-        print("Converting features numpy arrays to a pandas dataframes and saving them as csv files ...")
-        metadata_features = pd.DataFrame(metadata_features, columns=inst.args.metadata_feature_cols)
-        bbox_features = pd.DataFrame(bbox_features, columns=inst.args.bbox_feature_cols)
-        misc_features = pd.DataFrame(misc_features, columns=inst.args.misc_feature_cols)
-        shape_features = pd.DataFrame(shape_features, columns=inst.args.shape_feature_cols)
-        intensity_features = pd.DataFrame(intensity_features, columns=inst.args.intensity_feature_cols)
-        texture_features = pd.DataFrame(texture_features, columns=inst.args.texture_feature_cols)
-
-        metadata_features.to_csv(inst.save_path / f"metadata_features.csv", index=False, float_format="%.2f")
-        bbox_features.to_csv(inst.save_path / f"bbox_features.csv", index=False, float_format="%.2f")
-        misc_features.to_csv(inst.save_path / f"misc_features.csv", index=False, float_format="%.2f")
-        shape_features.to_csv(inst.save_path / f"shape_features.csv", index=False, float_format="%.2f")
-        intensity_features.to_csv(inst.save_path / f"intensity_features.csv", index=False, float_format="%.2f")
-        texture_features.to_csv(inst.save_path / f"texture_features.csv", index=False, float_format="%.2f")
-
-        print(f"Finished Cellpaint step 4 in: {(time.time() - start_time) / 3600} hours\n")
-        return inst.args
-
 
 def step4_main_run_loop(args, myclass=FeatureExtractor):
-    # args.mode = "test"
-    if args.mode == "test":
-        step4_single_run_loop(args, myclass)
-    else:
-        # step4_multi_run_loop(args, myclass)
-        step4_single_run_loop(args, myclass)
+    """
+    This function is the main entry point for the feature extraction step of the SPACe pipeline.
+    It initializes the FeatureExtractor class and runs the feature extraction process.
+    """
+    step4_single_run_loop(args, myclass)
