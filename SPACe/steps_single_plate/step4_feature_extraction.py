@@ -451,35 +451,63 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
     # intensity_features = np.zeros((T, len(inst.args.intensity_feature_cols)), dtype=np.float32)
     # texture_features = np.zeros((T, len(inst.args.texture_feature_cols)), dtype=np.float32)
 
-    metadata_features = np.zeros((T, len(inst.args.metadata_feature_cols)), dtype=object)
-    bbox_features = da.zeros((T, len(inst.args.bbox_feature_cols)), dtype=np.float32)
-    misc_features = da.zeros((T, len(inst.args.misc_feature_cols)), dtype=np.float32)
-    shape_features = da.zeros((T, len(inst.args.shape_feature_cols)), dtype=np.float32)
-    intensity_features = da.zeros((T, len(inst.args.intensity_feature_cols)), dtype=np.float32)
-    texture_features = da.zeros((T, len(inst.args.texture_feature_cols)), dtype=np.float32)
+    # metadata_features = np.zeros((T, len(inst.args.metadata_feature_cols)), dtype=object)
+    # bbox_features = da.zeros((T, len(inst.args.bbox_feature_cols)), dtype=np.float32)
+    # misc_features = da.zeros((T, len(inst.args.misc_feature_cols)), dtype=np.float32)
+    # shape_features = da.zeros((T, len(inst.args.shape_feature_cols)), dtype=np.float32)
+    # intensity_features = da.zeros((T, len(inst.args.intensity_feature_cols)), dtype=np.float32)
+    # texture_features = da.zeros((T, len(inst.args.texture_feature_cols)), dtype=np.float32)
+
+    # bag = db.from_sequence(range(inst.args.N), partition_size=20)
+
+    # bag = bag.map(
+    #     lambda idx: process_feature_extraction(
+    #         inst, idx, metadata_features, bbox_features, misc_features,
+    #         shape_features, intensity_features, texture_features
+    #     )
+    # )
+
 
     bag = db.from_sequence(range(inst.args.N), partition_size=20)
 
-    bag = bag.map(
-        lambda idx: process_feature_extraction(
-            inst, idx, metadata_features, bbox_features, misc_features,
-            shape_features, intensity_features, texture_features
-        )
-    )
+    bag = bag.map(lambda idx: process_feature_extraction(inst, idx))
 
     results = bag.compute()
 
-    metadata_features = metadata_features
-    bbox_features = bbox_features.compute()
-    misc_features = misc_features.compute()
-    shape_features = shape_features.compute()
-    intensity_features = intensity_features.compute()
-    texture_features = texture_features.compute()
+    # metadata_features = metadata_features
+    # bbox_features = bbox_features.compute()
+    # misc_features = misc_features.compute()
+    # shape_features = shape_features.compute()
+    # intensity_features = intensity_features.compute()
+    # texture_features = texture_features.compute()
 
-    n_rows = 0
-    for idx in results:
-        if idx is not None:
-            n_rows += inst.N_ub
+    metadata_features = []
+    bbox_features = []
+    misc_features = []
+    shape_features = []
+    intensity_features = []
+    texture_features = []
+
+    for out in results:
+        if out is not None:
+            metadata_features.append(out[0])
+            bbox_features.append(out[1])
+            misc_features.append(out[2])
+            shape_features.append(out[3])
+            intensity_features.append(out[4])
+            texture_features.append(out[5])
+
+    metadata_features = np.vstack(metadata_features)
+    bbox_features = np.vstack(bbox_features)
+    misc_features = np.vstack(misc_features)
+    shape_features = np.vstack(shape_features)
+    intensity_features = np.vstack(intensity_features)
+    texture_features = np.vstack(texture_features)        
+
+    # n_rows = 0
+    # for idx in results:
+    #     if idx is not None:
+    #         n_rows += inst.N_ub
 
     # for idx in tqdm(range(inst.args.N), total=inst.args.N):
     #         out = inst.step2_get_features(idx)
@@ -496,12 +524,12 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
     #             texture_features[start:end, :] = out[5]
     #             n_rows = end
 
-    metadata_features = metadata_features[0:n_rows]
-    bbox_features = bbox_features[0:n_rows]
-    misc_features = misc_features[0:n_rows]
-    shape_features = shape_features[0:n_rows]
-    intensity_features = intensity_features[0:n_rows]
-    texture_features = texture_features[0:n_rows]
+    # metadata_features = metadata_features[0:n_rows]
+    # bbox_features = bbox_features[0:n_rows]
+    # misc_features = misc_features[0:n_rows]
+    # shape_features = shape_features[0:n_rows]
+    # intensity_features = intensity_features[0:n_rows]
+    # texture_features = texture_features[0:n_rows]
 
     # save features and metadata
     print("converting features numpy arrays to a pandas dataframes and saving them as csv files ...")
@@ -519,9 +547,16 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
     intensity_features.to_csv(inst.save_path / f"intensity_features.csv", index=False, float_format="%.2f")
     texture_features.to_csv(inst.save_path / f"texture_features.csv", index=False, float_format="%.2f")
 
+    del metadata_features
+    del bbox_features
+    del misc_features
+    del shape_features
+    del intensity_features
+    del texture_features
+    
 
-def process_feature_extraction(inst, idx, metadata_features, bbox_features, misc_features,
-                               shape_features, intensity_features, texture_features):
+
+def process_feature_extraction(inst, idx):
     """
     Extract features for a single index and update shared memory arrays.
     """
@@ -529,18 +564,19 @@ def process_feature_extraction(inst, idx, metadata_features, bbox_features, misc
     if out is None:
         return None
 
-    ncells = out[0].shape[0]
-    start = idx * inst.N_ub
-    end = start + ncells
+    # ncells = out[0].shape[0]
+    # start = idx * inst.N_ub
+    # end = start + ncells
 
-    metadata_features[start:end, :] = out[0]
-    bbox_features[start:end, :] = out[1]
-    misc_features[start:end, :] = out[2]
-    shape_features[start:end, :] = out[3]
-    intensity_features[start:end, :] = out[4]
-    texture_features[start:end, :] = out[5]
+    # metadata_features[start:end, :] = out[0]
+    # bbox_features[start:end, :] = out[1]
+    # misc_features[start:end, :] = out[2]
+    # shape_features[start:end, :] = out[3]
+    # intensity_features[start:end, :] = out[4]
+    # texture_features[start:end, :] = out[5]
 
-    return idx  # Return the index for tracking
+    # return idx  # Return the index for tracking
+    return out
 
 
 def step4_multi_run_loop(args, myclass=FeatureExtractor):
