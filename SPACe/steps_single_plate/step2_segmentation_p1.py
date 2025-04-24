@@ -1,16 +1,12 @@
 import os
-import time
 from tqdm import tqdm
 from pathlib import WindowsPath
-
-import numpy as np
 from SPACe.SPACe.steps_single_plate.step0_args import Args
 from SPACe.SPACe.steps_single_plate._segmentation import SegmentationPartI
-from dask import delayed, compute
+import dask.bag as db
 
 from cellpose import models
 import torch
-import gc
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
@@ -20,7 +16,7 @@ def chunkify(lst, n):
 
 def create_model(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    return models.Cellpose(gpu=True, model_type=args.cellpose_model_type, net_avg=False, device=device)
+    return models.Cellpose(gpu=True, model_type=args.cellpose_model_type, device=device)
 
 def step2_main_run_loop(args):
     """
@@ -32,39 +28,19 @@ def step2_main_run_loop(args):
         It saves the two masks as separate png files into:
         self.args.step1_save_path = args.main_path / args.experiment / "Step1_MasksP1"
     """
-    print("Cellpaint Step 2: Cellpose segmentation of Nucleus and Cytoplasm ...")
+    args.logger.info("Cellpaint Step 2: Cellpose segmentation of Nucleus and Cytoplasm ...")
 
-    seg_class = SegmentationPartI(args, None)
-    s_time = time.time()
+    cellpose_model = create_model(args)
+    seg_class = SegmentationPartI(args, cellpose_model=cellpose_model)
     N = seg_class.args.N
-    ranger = np.arange(N)
-    # ranger = tqdm(np.arange(N), total=N)
-    chunked_ranger = chunkify(ranger, 40)
-    i = 0
-    for chunk in chunked_ranger:
-        tasks = []
-        cellpose_model = create_model(args)
-        seg_class.cellpose_model = cellpose_model
-        print(f"Running Cellpaint Step 2 for {i} chunk ...")
-        for ii in chunk:
-            tasks.append(delayed(seg_class.run_single)(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii]))
-        # for obj in gc.get_objects():
-        #     try:
-        #         if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-        #             print(type(obj), obj.size())
-        #     except:
-        #         pass
-        compute(*tasks)
-        print(f"Finished Cellpaint Step 2 for {i} chunk ...")
-        i += 1
+    
+    args.logger.info(f"Creating {N} tasks for Cellpaint Step 2 ...")
+    data = list(zip(seg_class.args.img_channels_filepaths, seg_class.args.img_filename_keys))
 
-
-    # tasks = [delayed(seg_class.run_single)(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii]) for ii in ranger]
-    # compute(*tasks)
-
-    # for ii in ranger:
-    #     seg_class.run_single(seg_class.args.img_channels_filepaths[ii], seg_class.args.img_filename_keys[ii])
-    print(f"Finished Cellpaint Step 2 for {N} images  in {(time.time() - s_time) / 3600} hours\n")
+    bag = db.from_sequence(data, partition_size=50)
+    tasks = bag.map(lambda x: seg_class.run_single(x[0], x[1]))
+    return tasks    
+    
 
 
 if __name__ == "__main__":

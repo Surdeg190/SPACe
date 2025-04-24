@@ -1,16 +1,7 @@
-import os
 import time
 from tqdm import tqdm
-from pathlib import WindowsPath
-
-import numpy as np
-import multiprocessing as mp
-
-from SPACe.SPACe.steps_single_plate.step0_args import Args
-from SPACe.SPACe.utils.shared_memory import MyBaseManager, TestProxy
 from SPACe.SPACe.steps_single_plate._segmentation import SegmentationPartII
-
-from dask import delayed, compute
+import dask.bag as db
 
 def chunkify(lst, n):
     return list([lst[i::n] for i in range(n)])
@@ -51,29 +42,16 @@ def step3_main_run_loop(args, myclass=SegmentationPartII):
 
         Try to use lists, dictionaries, and tuples instead.
         """
-        # MyManager = MyBaseManager()
-        # MyManager.register(myclass.__name__, myclass, TestProxy)
-        # with MyManager as manager:
-        #     inst = getattr(manager, myclass.__name__)(args)
-        #     N = inst.args.N
-        #     with mp.Pool(processes=inst.num_workers) as pool:
-        #         for _ in pool.imap_unordered(inst.run_multi, np.arange(N)):
-        #             pass
-        #     # print(N)
 
         seg_class = myclass(args)
         N = seg_class.args.N
-        ranger = np.arange(N)
-        chunked_ranger = chunkify(ranger, 40)
-        i = 0
-        for chunk in chunked_ranger:
-            tasks = []
-            print(f"Running Cellpaint Step 3 for {i} chunk ...")
-            for ii in chunk:
-                tasks.append(delayed(seg_class.run_single)(ii))
-            i += 1
-            compute(*tasks)
-            print(f"Finished Cellpaint Step 3 for {i} chunk ...")
+        args.logger.info(f"Creating {N} tasks for Cellpaint Step 3 ...")
+        
+        bag = db.from_sequence(range(N), partition_size=50)
+        tasks_bag = bag.map(lambda ii: seg_class.run_single(ii))
+
+        args.logger.info(f"Finished creating {N} tasks for Cellpaint Step 3 ...")
 
 
-        print(f"Finished Cellpaint step 3 in: {(time.time()-s_time)/3600} hours\n")
+        return tasks_bag
+
