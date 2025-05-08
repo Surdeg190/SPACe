@@ -475,11 +475,13 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
     texture_features = pd.DataFrame(texture_features, columns=inst.args.texture_feature_cols)
 
     metadata_features.to_parquet(inst.save_path / f"metadata_features.parquet", index=False)
-    bbox_features.to_parquet(inst.save_path / f"bbox_features.csv", index=False)
-    misc_features.to_parquet(inst.save_path / f"misc_features.csv", index=False)
-    shape_features.to_parquet(inst.save_path / f"shape_features.csv", index=False)
-    intensity_features.to_parquet(inst.save_path / f"intensity_features.csv", index=False)
-    texture_features.to_parquet(inst.save_path / f"texture_features.csv", index=False)
+    bbox_features.to_parquet(inst.save_path / f"bbox_features.parquet", index=False)
+    misc_features.to_parquet(inst.save_path / f"misc_features.parquet", index=False)
+    shape_features.to_parquet(inst.save_path / f"shape_features.parquet", index=False)
+    intensity_features.to_parquet(inst.save_path / f"intensity_features.parquet", index=False)
+    texture_features.to_parquet(inst.save_path / f"texture_features.parquet", index=False)
+
+    args.logger.info(f"Features and metadata saved to {inst.save_path}")
 
     del metadata_features
     del bbox_features
@@ -487,6 +489,8 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
     del shape_features
     del intensity_features
     del texture_features
+    del results
+    del bag
     
 
 

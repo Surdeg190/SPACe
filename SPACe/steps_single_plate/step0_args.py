@@ -496,6 +496,8 @@ class Args(object):
             # split the experiment name on / and get the last part
             self.args.imgs_fold = self.args.imgs_dir.name
             print("self.args.imgs_fold:", self.args.imgs_fold)
+            self.args.experiment = self.args.imgs_dir.parent
+            print("self.args.experiment:", self.args.experiment)
 
             # Get generic width and height dimensions of the image, in the specific experiment.
             # We assume height and width are the same for every single images, in the same experiment!!!

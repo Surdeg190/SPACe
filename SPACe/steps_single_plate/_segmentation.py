@@ -86,8 +86,8 @@ class SegmentationPartI:
         # load, rescale/contrast-enhance, and background subtraction the images using the tophat filter!!!
         
         img = load_img(img_channels_filepaths, self.args)
-        
 
+        
         if self.args.step2_segmentation_algorithm == "w1=cellpose_w2=cellpose":  # recommended
             # get nucleus and cyto masks using cellpose
             w1_mask, _, _, _ = self.cellpose_model.eval(
