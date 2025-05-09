@@ -304,6 +304,12 @@ def load_img(img_path_group, args):
     w4_img = tifffile.imread(img_path_group[args.actin_idx])[np.newaxis]
     w5_img = tifffile.imread(img_path_group[args.mito_idx])[np.newaxis]
 
+    args.logger.info(f"Image for nucleus channel ({args.nucleus_idx}) loaded from {img_path_group[args.nucleus_idx]}")
+    args.logger.info(f"Image for cyto channel ({args.cyto_idx}) loaded from {img_path_group[args.cyto_idx]}")
+    args.logger.info(f"Image for nucleoli channel ({args.nucleoli_idx}) loaded from {img_path_group[args.nucleoli_idx]}")
+    args.logger.info(f"Image for actin channel ({args.actin_idx}) loaded from {img_path_group[args.actin_idx]}")
+    args.logger.info(f"Image for mito channel ({args.mito_idx}) loaded from {img_path_group[args.mito_idx]}")
+
     # get the rescale intensity percentiles
     w1_in_range = tuple(np.percentile(w1_img, args.rescale_intensity_bounds["w1"]))
     w2_in_range = tuple(np.percentile(w2_img, args.rescale_intensity_bounds["w2"]))
@@ -325,6 +331,22 @@ def load_img(img_path_group, args):
     w3_img = rescale_intensity(w3_img, in_range=w3_in_range)
     w4_img = rescale_intensity(w4_img, in_range=w4_in_range)
     w5_img = rescale_intensity(w5_img, in_range=w5_in_range)
+
+    illum_path = args.main_path.parent / "illum" / args.plate
+    # mito = mito
+    # nuclues = dna
+    # cyto = RNA
+    # ER = ER
+    # actin = AGP
+    illum_path_channels = list(illum_path.glob("*"))
+    # get the pathname with DNA_resized in it
+    w1_illum = [x for x in illum_path_channels if "DNA_resized" in str(x)][0]
+    w2_illum = [x for x in illum_path_channels if "RNA_resized" in str(x)][0]
+    w3_illum = [x for x in illum_path_channels if "ER_resized" in str(x)][0]
+    w4_illum = [x for x in illum_path_channels if "AGP_resized" in str(x)][0]
+    w5_illum = [x for x in illum_path_channels if "Mito_resized" in str(x)][0]
+
+    args.logger.info(f"w1_illum loaded from {w1_illum}, w2_illum loaded from {w2_illum}, w3_illum loaded from {w3_illum}, w4_illum loaded from {w4_illum}, w5_illum loaded from {w5_illum}")
 
     img = np.concatenate([w1_img, w2_img, w3_img, w4_img, w5_img], axis=0)
     return img
