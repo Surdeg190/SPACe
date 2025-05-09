@@ -310,6 +310,11 @@ def load_img(img_path_group, args):
     args.logger.info(f"Image for actin channel ({args.actin_idx}) loaded from {img_path_group[args.actin_idx]}")
     args.logger.info(f"Image for mito channel ({args.mito_idx}) loaded from {img_path_group[args.mito_idx]}")
 
+    print(f"Image for nucleus channel ({args.nucleus_idx}) loaded from {img_path_group[args.nucleus_idx]}")
+    print(f"Image for cyto channel ({args.cyto_idx}) loaded from {img_path_group[args.cyto_idx]}")
+    print(f"Image for nucleoli channel ({args.nucleoli_idx}) loaded from {img_path_group[args.nucleoli_idx]}")
+    print(f"Image for actin channel ({args.actin_idx}) loaded from {img_path_group[args.actin_idx]}")
+    print(f"Image for mito channel ({args.mito_idx}) loaded from {img_path_group[args.mito_idx]}")
     # get the rescale intensity percentiles
     w1_in_range = tuple(np.percentile(w1_img, args.rescale_intensity_bounds["w1"]))
     w2_in_range = tuple(np.percentile(w2_img, args.rescale_intensity_bounds["w2"]))
