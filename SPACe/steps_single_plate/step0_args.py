@@ -346,12 +346,24 @@ def load_img(img_path_group, args):
     illum_path_channels = list(illum_path.glob("*"))
     # get the pathname with DNA_resized in it
     w1_illum = [x for x in illum_path_channels if "DNA_resized" in str(x)][0]
-    w2_illum = [x for x in illum_path_channels if "RNA_resized" in str(x)][0]
-    w3_illum = [x for x in illum_path_channels if "ER_resized" in str(x)][0]
-    w4_illum = [x for x in illum_path_channels if "AGP_resized" in str(x)][0]
+    w2_illum = [x for x in illum_path_channels if "AGP_resized" in str(x)][0]
+    w3_illum = [x for x in illum_path_channels if "RNA_resized" in str(x)][0]
+    w4_illum = [x for x in illum_path_channels if "ER_resized" in str(x)][0]
     w5_illum = [x for x in illum_path_channels if "Mito_resized" in str(x)][0]
 
     args.logger.info(f"w1_illum loaded from {w1_illum}, w2_illum loaded from {w2_illum}, w3_illum loaded from {w3_illum}, w4_illum loaded from {w4_illum}, w5_illum loaded from {w5_illum}")
+
+    # illumination correction
+    w1_illum_img = np.load(w1_illum)
+    w1_img = w1_img / w1_illum_img
+    w2_illum_img = np.load(w2_illum)
+    w2_img = w2_img / w2_illum_img
+    w3_illum_img = np.load(w3_illum)
+    w3_img = w3_img / w3_illum_img
+    w4_illum_img = np.load(w4_illum)
+    w4_img = w4_img / w4_illum_img
+    w5_illum_img = np.load(w5_illum)
+    w5_img = w5_img / w5_illum_img
 
     img = np.concatenate([w1_img, w2_img, w3_img, w4_img, w5_img], axis=0)
     return img
