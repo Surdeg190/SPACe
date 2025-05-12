@@ -337,7 +337,7 @@ def load_img(img_path_group, args):
     w4_img = rescale_intensity(w4_img, in_range=w4_in_range)
     w5_img = rescale_intensity(w5_img, in_range=w5_in_range)
 
-    illum_path = args.main_path.parent / "illum" / args.plate
+    illum_path = args.main_path / args.source / "images" / args.batch / "illum" / args.plate
     # mito = mito
     # nuclues = dna
     # cyto = RNA
