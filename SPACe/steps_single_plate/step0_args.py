@@ -339,11 +339,11 @@ def load_img(img_path_group, args):
     
 
     illum_path = args.main_path / args.source / "images" / args.batch / "illum" / args.plate
-    print(f"illum_path: {illum_path}")
-    print(f"experiment: {args.experiment}")
-    print(f"source: {args.source}")
-    print(f"batch: {args.batch}")
-    print(f"main_path: {args.main_path}")
+    # print(f"illum_path: {illum_path}")
+    # print(f"experiment: {args.experiment}")
+    # print(f"source: {args.source}")
+    # print(f"batch: {args.batch}")
+    # print(f"main_path: {args.main_path}")
     # mito = mito
     # nuclues = dna
     # cyto = RNA
