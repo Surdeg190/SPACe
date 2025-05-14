@@ -3,6 +3,7 @@ import time
 from tqdm import tqdm
 import multiprocessing as mp
 import matplotlib.pyplot as plt
+import gc
 
 import cv2
 import sympy
@@ -166,31 +167,17 @@ class SegmentationPartI:
         return w1_mask, w2_mask
     
     def run_single(self, img_channels_filepaths, img_filename_key):
-        start = time.time()
-
-        # --- SEGMENTATION ---
-        seg_start = time.time()
         w1_mask, w2_mask = self.get_cellpose_masks(img_channels_filepaths, img_filename_key)
-        seg_time = time.time() - seg_start
 
-        # --- Convert masks ---
         exp_id, well_id, fov = img_filename_key[0], img_filename_key[1], img_filename_key[2]
         w1_mask = np.uint16(w1_mask)
         w2_mask = np.uint16(w2_mask)
-
-        # --- SAVE MASKS ---
-        save_start = time.time()
-        try:
-            sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
-            sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
-        except Exception as e:
-            self.args.logger.error(f"Failed saving {well_id} {fov}: {e}")
-        save_time = time.time() - save_start
-
-        total_time = time.time() - start
-
-        # --- LOG TIMES ---
-        self.args.logger.info(f"[{well_id}_{fov}] Segmentation: {seg_time:.2f}s | Saving: {save_time:.2f}s | Total: {total_time:.2f}s")
+            
+        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
+        sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
+        
+        del w1_mask, w2_mask
+        gc.collect()
 
 class SegmentationPartII:
     """Never put any object here that is a numpy array, because multiprocess can't pickle it!!!"""
