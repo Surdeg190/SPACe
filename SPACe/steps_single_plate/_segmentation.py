@@ -24,8 +24,6 @@ from cucim.skimage.filters import threshold_otsu as cthreshold_otsu
 from scipy.spatial import distance
 from scipy.ndimage import find_objects
 
-from scalene import scalene_profiler
-
 from cellpose import models
 import pyclesperanto_prototype as cle
 
@@ -82,7 +80,6 @@ class SegmentationPartI:
             self.save_path.mkdir(exist_ok=True, parents=True)
 
     def get_cellpose_masks(self, img_channels_filepaths, img_filename_key):
-        scalene_profiler.start()
         """
         cellpose-segmentation of a single image:
         Segment the nucleus and cytoplasm channels using Cellpose then save the masks to disk."""
@@ -166,11 +163,9 @@ class SegmentationPartI:
             axes[1, 1].imshow(label2rgb(w2_mask, bg_label=0), cmap="gray")
             # axes[2, 0].axis("off")
             plt.show()
-        scalene_profiler.stop()
         return w1_mask, w2_mask
     
     def run_single(self, img_channels_filepaths, img_filename_key):
-        scalene_profiler.start()
         w1_mask, w2_mask = self.get_cellpose_masks(img_channels_filepaths, img_filename_key)
         ########################################################################################################
         # Save the masks into disk
@@ -189,8 +184,6 @@ class SegmentationPartI:
         sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
         sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
         # print(f"saving {time.time() - et}")
-        scalene_profiler.stop() 
-
 
 class SegmentationPartII:
     """Never put any object here that is a numpy array, because multiprocess can't pickle it!!!"""
