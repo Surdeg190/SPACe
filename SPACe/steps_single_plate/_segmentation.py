@@ -8,6 +8,7 @@ import cv2
 import sympy
 import numpy as npy
 import cupy as np
+import cucim as cp
 import SimpleITK as sitk
 import skimage.io as sio
 from skimage.measure import label
@@ -17,6 +18,8 @@ from skimage.filters import threshold_otsu, gaussian
 from skimage.segmentation import find_boundaries
 from skimage.morphology import disk, erosion, dilation, closing, \
     binary_dilation
+
+from cucim.skimage.filters import threshold_otsu as cthreshold_otsu
 
 from scipy.spatial import distance
 from scipy.ndimage import find_objects
@@ -685,14 +688,16 @@ class SegmentationPartII:
             w5_bbox = cyto_mask[slc2] == obj_label
             ####################################################################
             # local mito mask calculation
-            w5_img_tmp = npy.where(w5_bbox.get(), w5_img[slc2], 0)
-            lb = npy.sum(w5_img_tmp < threshold_otsu(w5_img_tmp)) / npy.size(w5_img_tmp)
-            in_range = tuple(npy.percentile(w5_img_tmp, (lb, 99.9)))
-            w5_img_tmp = rescale_intensity(w5_img_tmp, in_range=in_range)
-            w5_mask_tmp = sitk.GetArrayFromImage(self.otsu_filter.Execute(sitk.GetImageFromArray(w5_img_tmp.astype(np.uint8))))
+            w5_img = np.asarray(w5_img)
+            w5_img_tmp = np.where(w5_bbox, w5_img[slc2], 0)
+            lb = np.sum(w5_img_tmp < cthreshold_otsu(w5_img_tmp)) / np.size(w5_img_tmp)
+            in_range = tuple(np.percentile(w5_img_tmp, (lb, 99.9)))
+            w5_img_tmp = rescale_intensity(w5_img_tmp.get(), in_range=in_range)
+            w5_img_tmp = np.asarray(w5_img_tmp)
+            w5_mask_tmp = w5_img_tmp > cthreshold_otsu(w5_img_tmp)
             # w5_mask_tmp = np.where(w5_mask_tmp, obj_label, 0)
             # w5_mask_local = w5_mask_local.get()
-            w5_mask_local[slc2] = np.asarray(npy.where(w5_bbox.get(), w5_mask_tmp, 0))
+            w5_mask_local[slc2] = np.where(w5_bbox, w5_mask_tmp, 0)
             # fig, axes = plt.subplots(2, 3, sharex=True, sharey=True)
             # axes[0, 0].imshow(np.where(w3_bbox, img[0][slc], 0), cmap="gray")
             # axes[0, 1].imshow(np.where(w5_bbox, img[1][slc], 0), cmap="gray")
