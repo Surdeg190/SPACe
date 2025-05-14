@@ -474,12 +474,19 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
     intensity_features = pd.DataFrame(intensity_features, columns=inst.args.intensity_feature_cols)
     texture_features = pd.DataFrame(texture_features, columns=inst.args.texture_feature_cols)
 
-    metadata_features.to_parquet(inst.save_path / f"metadata_features.parquet", index=False)
-    bbox_features.to_parquet(inst.save_path / f"bbox_features.parquet", index=False)
-    misc_features.to_parquet(inst.save_path / f"misc_features.parquet", index=False)
-    shape_features.to_parquet(inst.save_path / f"shape_features.parquet", index=False)
-    intensity_features.to_parquet(inst.save_path / f"intensity_features.parquet", index=False)
-    texture_features.to_parquet(inst.save_path / f"texture_features.parquet", index=False)
+    # metadata_features.to_parquet(inst.save_path / f"metadata_features.parquet", index=False)
+    # bbox_features.to_parquet(inst.save_path / f"bbox_features.parquet", index=False)
+    # misc_features.to_parquet(inst.save_path / f"misc_features.parquet", index=False)
+    # shape_features.to_parquet(inst.save_path / f"shape_features.parquet", index=False)
+    # intensity_features.to_parquet(inst.save_path / f"intensity_features.parquet", index=False)
+    # texture_features.to_parquet(inst.save_path / f"texture_features.parquet", index=False)
+    metadata_features.to_csv(inst.save_path / f"metadata_features.csv", index=False, float_format='%.2f')
+    bbox_features.to_csv(inst.save_path / f"bbox_features.csv", index=False, float_format='%.2f')
+    misc_features.to_csv(inst.save_path / f"misc_features.csv", index=False, float_format='%.2f')
+    shape_features.to_csv(inst.save_path / f"shape_features.csv", index=False, float_format='%.2f')
+    intensity_features.to_csv(inst.save_path / f"intensity_features.csv", index=False, float_format='%.2f')
+    texture_features.to_csv(inst.save_path / f"texture_features.csv", index=False, float_format='%.2f')
+
 
     args.logger.info(f"Features and metadata saved to {inst.save_path}")
 
