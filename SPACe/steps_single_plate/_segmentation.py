@@ -190,7 +190,7 @@ class SegmentationPartI:
         total_time = time.time() - start
 
         # --- LOG TIMES ---
-        self.args.logger.info(f"[{well_id}_{fov}] Segmentation: {seg_time:.2f}s | Saving: {save_time:.2f}s | Total: {total_time:.2f}s")
+        print(f"[{well_id}_{fov}] Segmentation: {seg_time:.2f}s | Saving: {save_time:.2f}s | Total: {total_time:.2f}s", flush=True)
 
 class SegmentationPartII:
     """Never put any object here that is a numpy array, because multiprocess can't pickle it!!!"""
