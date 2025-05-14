@@ -1,8 +1,8 @@
 import os
 from tqdm import tqdm
 from pathlib import WindowsPath
-from SPACe.SPACe.steps_single_plate.step0_args import Args
-from SPACe.SPACe.steps_single_plate._segmentation import SegmentationPartI
+from SPACe.steps_single_plate.step0_args import Args
+from SPACe.steps_single_plate._segmentation import SegmentationPartI
 import dask.bag as db
 
 from cellpose import models

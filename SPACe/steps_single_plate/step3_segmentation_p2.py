@@ -1,6 +1,6 @@
 import time
 from tqdm import tqdm
-from SPACe.SPACe.steps_single_plate._segmentation import SegmentationPartII
+from SPACe.steps_single_plate._segmentation import SegmentationPartII
 import dask.bag as db
 
 def chunkify(lst, n):

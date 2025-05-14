@@ -7,9 +7,9 @@ import numpy as np
 import multiprocessing as mp
 
 from pathlib import WindowsPath
-from SPACe.SPACe.steps_single_plate.step0_args import Args, sort_key_for_imgs, get_img_channel_groups
-from SPACe.SPACe.steps_single_plate._segmentation import SegmentationPartI, SegmentationPartII
-from SPACe.SPACe.utils.shared_memory import MyBaseManager, TestProxy
+from SPACe.steps_single_plate.step0_args import Args, sort_key_for_imgs, get_img_channel_groups
+from SPACe.steps_single_plate._segmentation import SegmentationPartI, SegmentationPartII
+from SPACe.utils.shared_memory import MyBaseManager, TestProxy
 
 
 def get_wellid(x, args):
