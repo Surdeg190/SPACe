@@ -175,20 +175,20 @@ class SegmentationPartI:
 
         w1_mask, _, _, _ = self.cellpose_model.eval(
             img[0],
-            diameter=args.cellpose_nucleus_diam,
+            diameter=self.args.cellpose_nucleus_diam,
             channels=[0, 0],
-            batch_size=args.cellpose_batch_size,
+            batch_size=self.args.cellpose_batch_size,
             resample=False,
-            min_size=args.min_sizes['w1'],
+            min_size=self.args.min_sizes['w1'],
             flow_threshold=0)
 
         w2_mask, _, _, _ = self.cellpose_model.eval(
             img[1],
-            diameter=args.cellpose_cyto_diam,
+            diameter=self.args.cellpose_cyto_diam,
             channels=[0, 0],
-            batch_size=args.cellpose_batch_size,
+            batch_size=self.args.cellpose_batch_size,
             resample=False,
-            min_size=args.min_sizes['w2'],
+            min_size=self.args.min_sizes['w2'],
             flow_threshold=0)
 
         # Save masks
