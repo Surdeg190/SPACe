@@ -176,9 +176,6 @@ class SegmentationPartI:
         sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
         sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
         
-        del w1_mask, w2_mask
-        gc.collect()
-
 class SegmentationPartII:
     """Never put any object here that is a numpy array, because multiprocess can't pickle it!!!"""
     analysis_step = 3
