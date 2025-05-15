@@ -170,7 +170,7 @@ class SegmentationPartI:
 
     @delayed
     def run_single(self, img_channels_filepaths, img_filename_key):
-        img_dask = load_img(img_channels_filepaths, self,args)
+        img_dask = load_img(img_channels_filepaths, self.args)
         img = img_dask.compute()  # collapse Dask graph here (controlled boundary)
 
         w1_mask, _, _, _ = self.cellpose_model.eval(
