@@ -5,6 +5,8 @@ import multiprocessing as mp
 import matplotlib.pyplot as plt
 import gc
 
+from dask import delayed, compute
+
 import cv2
 import sympy
 import numpy as npy
@@ -165,19 +167,39 @@ class SegmentationPartI:
             # axes[2, 0].axis("off")
             plt.show()
         return w1_mask, w2_mask
-    
-    def run_single(self, img_channels_filepaths, img_filename_key):
-        w1_mask, w2_mask = self.get_cellpose_masks(img_channels_filepaths, img_filename_key)
 
-        exp_id, well_id, fov = img_filename_key[0], img_filename_key[1], img_filename_key[2]
+    @delayed
+    def run_single(self, img_channels_filepaths, img_filename_key):
+        img_dask = load_img(img_channels_filepaths, self,args)
+        img = img_dask.compute()  # collapse Dask graph here (controlled boundary)
+
+        w1_mask, _, _, _ = self.cellpose_model.eval(
+            img[0],
+            diameter=args.cellpose_nucleus_diam,
+            channels=[0, 0],
+            batch_size=args.cellpose_batch_size,
+            resample=False,
+            min_size=args.min_sizes['w1'],
+            flow_threshold=0)
+
+        w2_mask, _, _, _ = self.cellpose_model.eval(
+            img[1],
+            diameter=args.cellpose_cyto_diam,
+            channels=[0, 0],
+            batch_size=args.cellpose_batch_size,
+            resample=False,
+            min_size=args.min_sizes['w2'],
+            flow_threshold=0)
+
+        # Save masks
+        exp_id, well_id, fov = img_filename_key
         w1_mask = np.uint16(w1_mask)
         w2_mask = np.uint16(w2_mask)
+
             
         sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 0), w1_mask, check_contrast=False)
         sio.imsave(self.save_path / set_mask_save_name(well_id, fov, 1), w2_mask, check_contrast=False)
         
-        del w1_mask, w2_mask
-        gc.collect()
 
 class SegmentationPartII:
     """Never put any object here that is a numpy array, because multiprocess can't pickle it!!!"""

@@ -20,6 +20,8 @@ import skimage.io as sio
 
 import dask.array as da
 from dask import delayed, compute
+import dask_image
+from dask_image.normalize import normalize
 import logging
 
 # TODO: Add proper documentation for all the different class
@@ -271,107 +273,58 @@ def load_img(img_path_group, args):
         returns:
         img: a numpy uint16 array of shape (5, height, width) containing the 5 image channels
     """
+    def dask_load(path):
+        return dask_image.imread.imread(str(path))  # [1, H, W]
 
-    # @delayed
-    # def load_and_process_image(img_path, bg_sub, bg_kernel, intensity_bounds):
-    #     img = tifffile.imread(img_path)[np.newaxis]
-    #     # img = img_path.compute()[np.newaxis]
-    #     in_range = tuple(np.percentile(img, intensity_bounds))
-    #     if bg_sub:
-    #         img = cv2.morphologyEx(img, cv2.MORPH_TOPHAT, bg_kernel)
-    #     img = rescale_intensity(img, in_range=in_range)
-    #     return img
+    # --- Load images lazily ---
+    w1_img = dask_load(img_path_group[args.nucleus_idx])
+    w2_img = dask_load(img_path_group[args.cyto_idx])
+    w3_img = dask_load(img_path_group[args.nucleoli_idx])
+    w4_img = dask_load(img_path_group[args.actin_idx])
+    w5_img = dask_load(img_path_group[args.mito_idx])
 
-    # # read images from file
-    # w1_img = load_and_process_image(img_path_group[args.nucleus_idx], args.bg_sub, args.bgsub_kernels["w1"],
-    #                                 args.rescale_intensity_bounds["w1"])
-    # w2_img = load_and_process_image(img_path_group[args.cyto_idx], args.bg_sub, args.bgsub_kernels["w2"],
-    #                                 args.rescale_intensity_bounds["w2"])
-    # w3_img = load_and_process_image(img_path_group[args.nucleoli_idx], args.bg_sub, args.bgsub_kernels["w3"],
-    #                                 args.rescale_intensity_bounds["w3"])
-    # w4_img = load_and_process_image(img_path_group[args.actin_idx], args.bg_sub, args.bgsub_kernels["w4"],
-    #                                 args.rescale_intensity_bounds["w4"])
-    # w5_img = load_and_process_image(img_path_group[args.mito_idx], args.bg_sub, args.bgsub_kernels["w5"],
-    #                                 args.rescale_intensity_bounds["w5"])
-    
-    # w1_img, w2_img, w3_img, w4_img, w5_img = compute(w1_img, w2_img, w3_img, w4_img, w5_img)
-
-    # img = np.concatenate([w1_img, w2_img, w3_img, w4_img, w5_img], axis=0)
-
-    w1_img = tifffile.imread(img_path_group[args.nucleus_idx])[np.newaxis]
-    w2_img = tifffile.imread(img_path_group[args.cyto_idx])[np.newaxis]
-    w3_img = tifffile.imread(img_path_group[args.nucleoli_idx])[np.newaxis]
-    w4_img = tifffile.imread(img_path_group[args.actin_idx])[np.newaxis]
-    w5_img = tifffile.imread(img_path_group[args.mito_idx])[np.newaxis]
-
-    # args.logger.info(f"Image for nucleus channel ({args.nucleus_idx}) loaded from {img_path_group[args.nucleus_idx]}")
-    # args.logger.info(f"Image for cyto channel ({args.cyto_idx}) loaded from {img_path_group[args.cyto_idx]}")
-    # args.logger.info(f"Image for nucleoli channel ({args.nucleoli_idx}) loaded from {img_path_group[args.nucleoli_idx]}")
-    # args.logger.info(f"Image for actin channel ({args.actin_idx}) loaded from {img_path_group[args.actin_idx]}")
-    # args.logger.info(f"Image for mito channel ({args.mito_idx}) loaded from {img_path_group[args.mito_idx]}")
-
-    # print(f"Image for nucleus channel ({args.nucleus_idx}) loaded from {img_path_group[args.nucleus_idx]}")
-    # print(f"Image for cyto channel ({args.cyto_idx}) loaded from {img_path_group[args.cyto_idx]}")
-    # print(f"Image for nucleoli channel ({args.nucleoli_idx}) loaded from {img_path_group[args.nucleoli_idx]}")
-    # print(f"Image for actin channel ({args.actin_idx}) loaded from {img_path_group[args.actin_idx]}")
-    # print(f"Image for mito channel ({args.mito_idx}) loaded from {img_path_group[args.mito_idx]}")
-    # get the rescale intensity percentiles
-    w1_in_range = tuple(np.percentile(w1_img, args.rescale_intensity_bounds["w1"]))
-    w2_in_range = tuple(np.percentile(w2_img, args.rescale_intensity_bounds["w2"]))
-    w3_in_range = tuple(np.percentile(w3_img, args.rescale_intensity_bounds["w3"]))
-    w4_in_range = tuple(np.percentile(w4_img, args.rescale_intensity_bounds["w4"]))
-    w5_in_range = tuple(np.percentile(w5_img, args.rescale_intensity_bounds["w5"]))
-
+    # --- Background subtraction using tophat filter ---
     if args.bg_sub:
-        # apply background subtraction using a tophat filter
-        w1_img = cv2.morphologyEx(w1_img, cv2.MORPH_TOPHAT, args.bgsub_kernels["w1"])
-        w2_img = cv2.morphologyEx(w2_img, cv2.MORPH_TOPHAT, args.bgsub_kernels["w2"])
-        w3_img = cv2.morphologyEx(w3_img, cv2.MORPH_TOPHAT, args.bgsub_kernels["w3"])
-        w4_img = cv2.morphologyEx(w4_img, cv2.MORPH_TOPHAT, args.bgsub_kernels["w4"])
-        w5_img = cv2.morphologyEx(w5_img, cv2.MORPH_TOPHAT, args.bgsub_kernels["w5"])
+        def tophat(img, kernel_size):
+            return dask_image.ndfilters.white_tophat(img, size=kernel_size)
 
-    # apply the rescale intensity using percentiles
-    w1_img = rescale_intensity(w1_img, in_range=w1_in_range)
-    w2_img = rescale_intensity(w2_img, in_range=w2_in_range)
-    w3_img = rescale_intensity(w3_img, in_range=w3_in_range)
-    w4_img = rescale_intensity(w4_img, in_range=w4_in_range)
-    w5_img = rescale_intensity(w5_img, in_range=w5_in_range)
+        w1_img = tophat(w1_img, args.bgsub_kernels["w1"])
+        w2_img = tophat(w2_img, args.bgsub_kernels["w2"])
+        w3_img = tophat(w3_img, args.bgsub_kernels["w3"])
+        w4_img = tophat(w4_img, args.bgsub_kernels["w4"])
+        w5_img = tophat(w5_img, args.bgsub_kernels["w5"])
+
+    # --- Illumination correction ---
+    def load_illum(path):
+        return da.from_array(np.load(path), chunks="auto")
     
+    illum_path_channels = args.main_path / args.source / "images" / args.batch / "illum" / args.plate
+    
+    w1_illum = load_illum([x for x in illum_path_channels if "DNA_resized" in str(x)][0])
+    w2_illum = load_illum([x for x in illum_path_channels if "AGP_resized" in str(x)][0])
+    w3_illum = load_illum([x for x in illum_path_channels if "RNA_resized" in str(x)][0])
+    w4_illum = load_illum([x for x in illum_path_channels if "ER_resized" in str(x)][0])
+    w5_illum = load_illum([x for x in illum_path_channels if "Mito_resized" in str(x)][0])
 
-    illum_path = args.main_path / args.source / "images" / args.batch / "illum" / args.plate
-    # print(f"illum_path: {illum_path}")
-    # print(f"experiment: {args.experiment}")
-    # print(f"source: {args.source}")
-    # print(f"batch: {args.batch}")
-    # print(f"main_path: {args.main_path}")
-    # mito = mito
-    # nuclues = dna
-    # cyto = RNA
-    # ER = ER
-    # actin = AGP
-    illum_path_channels = list(illum_path.glob("*"))
-    # get the pathname with DNA_resized in it
-    w1_illum = [x for x in illum_path_channels if "DNA_resized" in str(x)][0]
-    w2_illum = [x for x in illum_path_channels if "AGP_resized" in str(x)][0]
-    w3_illum = [x for x in illum_path_channels if "RNA_resized" in str(x)][0]
-    w4_illum = [x for x in illum_path_channels if "ER_resized" in str(x)][0]
-    w5_illum = [x for x in illum_path_channels if "Mito_resized" in str(x)][0]
+    w1_img /= w1_illum
+    w2_img /= w2_illum
+    w3_img /= w3_illum
+    w4_img /= w4_illum
+    w5_img /= w5_illum
 
-    #args.logger.info(f"w1_illum loaded from {w1_illum}, w2_illum loaded from {w2_illum}, w3_illum loaded from {w3_illum}, w4_illum loaded from {w4_illum}, w5_illum loaded from {w5_illum}")
+    # --- Rescale using Dask percentiles and dask-image normalize ---
+    def rescale_channel(img, p_bounds):
+        lo, hi = da.percentile(img, p_bounds)
+        return normalize(img, low=lo, high=hi)
 
-    # illumination correction
-    w1_illum_img = np.load(w1_illum)
-    w1_img = w1_img / w1_illum_img
-    w2_illum_img = np.load(w2_illum)
-    w2_img = w2_img / w2_illum_img
-    w3_illum_img = np.load(w3_illum)
-    w3_img = w3_img / w3_illum_img
-    w4_illum_img = np.load(w4_illum)
-    w4_img = w4_img / w4_illum_img
-    w5_illum_img = np.load(w5_illum)
-    w5_img = w5_img / w5_illum_img
+    w1_img = rescale_channel(w1_img, args.rescale_intensity_bounds["w1"])
+    w2_img = rescale_channel(w2_img, args.rescale_intensity_bounds["w2"])
+    w3_img = rescale_channel(w3_img, args.rescale_intensity_bounds["w3"])
+    w4_img = rescale_channel(w4_img, args.rescale_intensity_bounds["w4"])
+    w5_img = rescale_channel(w5_img, args.rescale_intensity_bounds["w5"])
 
-    img = np.concatenate([w1_img, w2_img, w3_img, w4_img, w5_img], axis=0)
+    # --- Stack all channels ---
+    img = da.concatenate([w1_img, w2_img, w3_img, w4_img, w5_img], axis=0)
     return img
 
 
