@@ -21,7 +21,6 @@ import skimage.io as sio
 import dask.array as da
 from dask import delayed, compute
 import dask_image
-from dask_image.normalize import normalize
 import logging
 
 # TODO: Add proper documentation for all the different class
@@ -315,7 +314,7 @@ def load_img(img_path_group, args):
     # --- Rescale using Dask percentiles and dask-image normalize ---
     def rescale_channel(img, p_bounds):
         lo, hi = da.percentile(img, p_bounds)
-        return normalize(img, low=lo, high=hi)
+        return (img - lo) / (hi - lo + 1e-8)
 
     w1_img = rescale_channel(w1_img, args.rescale_intensity_bounds["w1"])
     w2_img = rescale_channel(w2_img, args.rescale_intensity_bounds["w2"])
