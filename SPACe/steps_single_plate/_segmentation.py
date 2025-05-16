@@ -737,13 +737,14 @@ class SegmentationPartII:
                     ((self.nucleoli_bd_pad, self.nucleoli_bd_pad),
                      (self.nucleoli_bd_pad, self.nucleoli_bd_pad)),
                     constant_values=(0, 0))
-                bd = find_boundaries(w3_bbox_padded, connectivity=2)
+                bd = find_boundaries(w3_bbox_padded.get(), connectivity=2)
                 bd = bd[
                      self.nucleoli_bd_pad:-self.nucleoli_bd_pad,
                      self.nucleoli_bd_pad:-self.nucleoli_bd_pad]
                 if self.args.plate_protocol in ["greiner", "perkinelmer"]:
                     bd = binary_dilation(bd, disk(2))
-
+                # bd to cupy
+                bd = np.asarray(bd)
                 w3_tmp_bd_mask = w3_mask_tmp * bd
                 bd_areas = np.bincount(w3_tmp_bd_mask.ravel())[w3_tmp_bd_mask]
                 area_ratio = areas/bd_areas
