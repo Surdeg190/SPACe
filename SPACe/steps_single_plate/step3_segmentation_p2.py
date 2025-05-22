@@ -47,7 +47,7 @@ def step3_main_run_loop(args, myclass=SegmentationPartII):
         N = seg_class.args.N
         args.logger.info(f"Creating {N} tasks for Cellpaint Step 3 ...")
         
-        bag = db.from_sequence(range(N), partition_size=50)
+        bag = db.from_sequence(range(N), partition_size=args.partition_size)
         tasks_bag = bag.map(lambda ii: seg_class.run_single(ii))
 
         args.logger.info(f"Finished creating {N} tasks for Cellpaint Step 3 ...")

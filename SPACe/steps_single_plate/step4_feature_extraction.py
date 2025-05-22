@@ -436,7 +436,7 @@ def step4_single_run_loop(args, myclass=FeatureExtractor):
     # 2) get features
     inst = myclass(args)
     
-    bag = db.from_sequence(range(inst.args.N), partition_size=20)
+    bag = db.from_sequence(range(inst.args.N), partition_size=args.partition_size)
 
     bag = bag.map(lambda idx: process_feature_extraction(inst, idx))
 

@@ -37,7 +37,7 @@ def step2_main_run_loop(args):
     args.logger.info(f"Creating {N} tasks for Cellpaint Step 2 ...")
     data = list(zip(seg_class.args.img_channels_filepaths, seg_class.args.img_filename_keys))
 
-    bag = db.from_sequence(data, partition_size=50)
+    bag = db.from_sequence(data, partition_size=args.partition_size)
     tasks = bag.map(lambda x: seg_class.run_single(x[0], x[1]))
     return tasks    
     

@@ -437,6 +437,8 @@ class Args(object):
             plate_protocol="cimini",
             platemap_path="platemap/platemap.xlsx",
             output_path="results",
+            partition_size=50,
+            data_pct=0.1,
     ):
         """
             experiment:
@@ -528,6 +530,8 @@ class Args(object):
         self.args.plate_protocol = plate_protocol
         self.args.platemap_path = platemap_path
         self.args.output_path = output_path
+        self.parition_size = partition_size
+        self.args.data_pct = data_pct
 
         self.args.logger = createLogger()
 
@@ -597,11 +601,18 @@ class Args(object):
             # remove them from img_paths, so that they do not mess-up the analysis.
             self.args.img_filepaths = list(
                 filter(lambda x: x.stem.split("_")[-1][0:5] == "T0001", self.args.img_filepaths))
+        
         self.args.img_filepaths = sorted(
             self.args.img_filepaths,
             key=lambda x: sort_key_for_imgs(x, "to_sort_channels", self.args.plate_protocol))
         self.args.img_filename_keys, self.args.img_channels_filepaths, self.args.N = get_img_channel_groups(self.args)
         self.args.height, self.args.width = tifffile.imread(self.args.img_filepaths[0]).shape
+
+        # use only data_pct of the images for analysis
+        n_keep = int(len(self.args.img_channels_filepaths) * self.args.data_pct)
+        self.args.img_channels_filepaths = self.args.img_channels_filepaths[:n_keep]
+        self.args.img_filename_keys = self.args.img_filename_keys[:n_keep]
+        self.args.N = len(self.args.img_channels_filepaths)
 
         # # set img_channels_filepaths and img_filename_keys as dask arrays
         # self.args.img_channels_filepaths = da.from_array(self.args.img_channels_filepaths, chunks=(1, 100))
