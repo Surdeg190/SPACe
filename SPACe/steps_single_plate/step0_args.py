@@ -530,7 +530,7 @@ class Args(object):
         self.args.plate_protocol = plate_protocol
         self.args.platemap_path = platemap_path
         self.args.output_path = output_path
-        self.parition_size = partition_size
+        self.args.partition_size = partition_size
         self.args.data_pct = data_pct
 
         self.args.logger = createLogger()
