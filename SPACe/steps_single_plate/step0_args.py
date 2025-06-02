@@ -331,11 +331,6 @@ def load_img(img_path_group, args):
         w5_img = cv2.morphologyEx(w5_img, cv2.MORPH_TOPHAT, args.bgsub_kernels["w5"])
 
     # apply the rescale intensity using percentiles
-    w1_img = rescale_intensity(w1_img, in_range=w1_in_range)
-    w2_img = rescale_intensity(w2_img, in_range=w2_in_range)
-    w3_img = rescale_intensity(w3_img, in_range=w3_in_range)
-    w4_img = rescale_intensity(w4_img, in_range=w4_in_range)
-    w5_img = rescale_intensity(w5_img, in_range=w5_in_range)
     
 
     illum_path = args.main_path / args.source / "images" / args.batch / "illum" / args.plate
@@ -371,6 +366,12 @@ def load_img(img_path_group, args):
     w5_illum_img = np.load(w5_illum)
     w5_img = w5_img / w5_illum_img
 
+    w1_img = rescale_intensity(w1_img, in_range=w1_in_range)
+    w2_img = rescale_intensity(w2_img, in_range=w2_in_range)
+    w3_img = rescale_intensity(w3_img, in_range=w3_in_range)
+    w4_img = rescale_intensity(w4_img, in_range=w4_in_range)
+    w5_img = rescale_intensity(w5_img, in_range=w5_in_range)
+    
     img = np.concatenate([w1_img, w2_img, w3_img, w4_img, w5_img], axis=0)
     return img
 
