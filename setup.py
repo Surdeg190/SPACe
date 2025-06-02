@@ -20,6 +20,6 @@ setup(
         'numpy>=1.20.0', 'scipy', 'scikit-image>=0.20.0', 'scikit-learn',
         'SimpleITK',
         'pandas>=2.0.0', 'xlsxwriter', 'openpyxl', 'xlrd', 'jupyter',
-        'matplotlib', 'seaborn', 'plotly',
+        'matplotlib', 'seaborn',
         'pathlib', 'tqdm', 'typing', 'cmcrameri', 'pyefd',]
 )
